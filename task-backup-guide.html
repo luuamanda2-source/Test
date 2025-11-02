@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luong's Task Backup Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .guide-section {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .method-title {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .step-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border-left: 5px solid #667eea;
+        }
+        .warning-box {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #ffc107;
+            margin: 15px 0;
+        }
+        .success-box {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #28a745;
+            margin: 15px 0;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            font-weight: bold;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        .code {
+            background: #f1f3f4;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>📋 Luong's Task Backup & Sync Guide</h1>
+    <p style="font-size: 1.2em; text-align: center; margin-bottom: 30px;">
+        How to save and transfer your tasks between devices
+    </p>
+
+    <div class="guide-section">
+        <div class="method-title">
+            🚨 The Problem
+        </div>
+        <div class="warning-box">
+            <h4>Browser localStorage Limitations:</h4>
+            <ul>
+                <li><strong>Profile-specific:</strong> Tasks only exist in the browser profile where you created them</li>
+                <li><strong>Device-specific:</strong> Can't access tasks from other computers</li>
+                <li><strong>Browser-specific:</strong> Chrome tasks won't appear in Firefox</li>
+                <li><strong>No cloud sync:</strong> Tasks aren't automatically backed up</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="guide-section">
+        <div class="method-title">
+            💾 Solution 1: Quick Clipboard Backup (NEW!)
+        </div>
+        
+        <div class="success-box">
+            <h4>✨ I just added clipboard backup to your app!</h4>
+            <p>Now you have two new buttons: <strong>"📋 Copy Tasks"</strong> and <strong>"📋 Paste Tasks"</strong></p>
+        </div>
+
+        <div class="step-box">
+            <h4>📤 To Backup Your Current Tasks:</h4>
+            <ol>
+                <li>Open your task manager with all your current tasks</li>
+                <li>Click <strong>"📋 Copy Tasks"</strong> button</li>
+                <li>Your tasks are now copied to clipboard!</li>
+                <li>Paste them in a text file and save it (as backup)</li>
+            </ol>
+        </div>
+
+        <div class="step-box">
+            <h4>📥 To Restore Tasks on Another Device:</h4>
+            <ol>
+                <li>Copy your saved task data</li>
+                <li>Open the task manager on the new device</li>
+                <li>Click <strong>"📋 Paste Tasks"</strong> button</li>
+                <li>Your tasks will be imported instantly!</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="guide-section">
+        <div class="method-title">
+            📁 Solution 2: File Export/Import
+        </div>
+        
+        <div class="step-box">
+            <h4>📤 Export to File:</h4>
+            <ol>
+                <li>Click <strong>"📤 Export Tasks"</strong> button</li>
+                <li>Save the downloaded JSON file</li>
+                <li>Store it in cloud storage (Google Drive, OneDrive, etc.)</li>
+            </ol>
+        </div>
+
+        <div class="step-box">
+            <h4>📥 Import from File:</h4>
+            <ol>
+                <li>Download your JSON file on the new device</li>
+                <li>Click <strong>"📥 Import Tasks"</strong> button</li>
+                <li>Select your saved file</li>
+                <li>Tasks will be imported!</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="guide-section">
+        <div class="method-title">
+            🌐 Answer to Your GitHub Questions
+        </div>
+        
+        <div class="warning-box">
+            <h4>❌ GitHub Won't Sync Your Task Data</h4>
+            <p><strong>Why:</strong> Your tasks are stored in browser localStorage, not in the HTML file itself. When you push to GitHub, you're only pushing the app code, not your personal task data.</p>
+        </div>
+
+        <div class="step-box">
+            <h4>✅ How to Use GitHub + Task Backup:</h4>
+            <ol>
+                <li><strong>Push app to GitHub:</strong> Your task manager code is safely stored</li>
+                <li><strong>Backup tasks separately:</strong> Use clipboard or file export</li>
+                <li><strong>On company computer:</strong>
+                    <ul>
+                        <li>Clone/download your app from GitHub</li>
+                        <li>Open the task manager</li>
+                        <li>Import your backed-up tasks</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <div class="success-box">
+            <h4>🎯 Best Practice Workflow:</h4>
+            <ol>
+                <li><strong>Daily:</strong> Use your task manager normally</li>
+                <li><strong>Before switching devices:</strong> Click "📋 Copy Tasks" and save to a note</li>
+                <li><strong>On new device:</strong> Open app and "📋 Paste Tasks"</li>
+                <li><strong>Weekly:</strong> Export to file as backup</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="guide-section">
+        <div class="method-title">
+            🚀 Quick Action Plan for Tomorrow
+        </div>
+        
+        <div class="step-box">
+            <h4>Tonight (Before You Leave):</h4>
+            <ol>
+                <li>Open your task manager with all current tasks</li>
+                <li>Click <strong>"📋 Copy Tasks"</strong></li>
+                <li>Paste into a text file and save it</li>
+                <li>Email the file to yourself OR save to cloud storage</li>
+            </ol>
+        </div>
+
+        <div class="step-box">
+            <h4>Tomorrow (On Company Computer):</h4>
+            <ol>
+                <li>Download your app from GitHub</li>
+                <li>Open monthly-task-manager.html</li>
+                <li>Copy your saved task data</li>
+                <li>Click <strong>"📋 Paste Tasks"</strong></li>
+                <li>All your tasks are back! 🎉</li>
+            </ol>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px;">
+        <a href="monthly-task-manager.html" class="btn">
+            🚀 Open Task Manager & Backup Now
+        </a>
+        <br><br>
+        <p style="font-size: 1.1em; margin-top: 20px;">
+            Don't forget to backup your tasks before switching devices! 💾
+        </p>
+    </div>
+</body>
+</html>

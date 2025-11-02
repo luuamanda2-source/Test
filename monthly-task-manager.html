@@ -661,6 +661,8 @@
         <div style="background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); text-align: center; margin-top: 20px;">
             <button class="btn btn-small" onclick="exportTasks()">📤 Export Tasks</button>
             <button class="btn btn-small" onclick="importTasks()">📥 Import Tasks</button>
+            <button class="btn btn-small" onclick="exportToClipboard()">📋 Copy Tasks</button>
+            <button class="btn btn-small" onclick="importFromClipboard()">📋 Paste Tasks</button>
             <button class="btn btn-small" onclick="clearCompleted()">🧹 Clear Completed</button>
             <button class="btn btn-small btn-danger" onclick="clearAllTasks()">🗑️ Clear All</button>
         </div>
@@ -1403,6 +1405,69 @@
             };
 
             input.click();
+        }
+
+        // Export tasks to clipboard
+        async function exportToClipboard() {
+            if (tasks.length === 0) {
+                showNotification('No tasks to export', 'warning');
+                return;
+            }
+
+            try {
+                const tasksData = JSON.stringify(tasks, null, 2);
+                await navigator.clipboard.writeText(tasksData);
+                showNotification(`📋 ${tasks.length} tasks copied to clipboard! You can now paste them anywhere.`, 'success');
+            } catch (err) {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = JSON.stringify(tasks, null, 2);
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification(`📋 ${tasks.length} tasks copied to clipboard!`, 'success');
+            }
+        }
+
+        // Import tasks from clipboard
+        async function importFromClipboard() {
+            try {
+                const clipboardText = await navigator.clipboard.readText();
+
+                if (!clipboardText.trim()) {
+                    showNotification('Clipboard is empty', 'warning');
+                    return;
+                }
+
+                const importedData = JSON.parse(clipboardText);
+
+                if (!Array.isArray(importedData)) {
+                    showNotification('Invalid task data in clipboard', 'error');
+                    return;
+                }
+
+                // Validate task structure
+                const validTasks = importedData.filter(task =>
+                    task && typeof task === 'object' &&
+                    task.title && task.id && task.deadline
+                );
+
+                if (validTasks.length === 0) {
+                    showNotification('No valid tasks found in clipboard', 'warning');
+                    return;
+                }
+
+                // Add imported tasks
+                tasks = [...tasks, ...validTasks];
+                saveTasks();
+                updateStats();
+                updateDisplay();
+                showNotification(`📋 Successfully imported ${validTasks.length} tasks from clipboard!`, 'success');
+
+            } catch (err) {
+                showNotification('Failed to read from clipboard or invalid data format', 'error');
+            }
         }
 
         // Clear completed tasks
