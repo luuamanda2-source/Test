@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luong's Productivity Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .apps-grid {
+            padding: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+
+        .app-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .app-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .app-description {
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .app-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+
+        .app-features li {
+            color: #555;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .app-features li::before {
+            content: '✅';
+            position: absolute;
+            left: 0;
+        }
+
+        .launch-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            width: 100%;
+            text-align: center;
+        }
+
+        .launch-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .main-app {
+            border: 3px solid #667eea;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+        }
+
+        .main-app .app-title {
+            color: #667eea;
+            font-size: 1.8em;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            border-top: 1px solid #eee;
+        }
+
+        .github-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .github-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .header p {
+                font-size: 1.1em;
+            }
+            
+            .apps-grid {
+                padding: 20px;
+                gap: 20px;
+            }
+            
+            .app-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Luong's Productivity Hub</h1>
+            <p>Your personal collection of productivity and learning apps</p>
+        </div>
+
+        <div class="apps-grid">
+            <!-- Main Task Manager -->
+            <div class="app-card main-app">
+                <div class="app-icon">📋</div>
+                <div class="app-title">Task Manager</div>
+                <div class="app-description">
+                    Your personalized monthly task manager with smart features and celebration rewards.
+                </div>
+                <ul class="app-features">
+                    <li>Daily/Weekly/Monthly recurring tasks</li>
+                    <li>Auto-sorting by deadline urgency</li>
+                    <li>Firework celebrations for completion</li>
+                    <li>Clickable URLs in descriptions</li>
+                    <li>Export/Import with clipboard backup</li>
+                </ul>
+                <a href="monthly-task-manager.html" class="launch-btn">🎯 Launch Task Manager</a>
+            </div>
+
+            <!-- Chinese Learning App -->
+            <div class="app-card">
+                <div class="app-icon">🇨🇳</div>
+                <div class="app-title">Chinese Learning</div>
+                <div class="app-description">
+                    Comprehensive Chinese learning platform with pinyin, vocabulary, and interactive exercises.
+                </div>
+                <ul class="app-features">
+                    <li>Pinyin practice with tone colors</li>
+                    <li>HSK level vocabulary system</li>
+                    <li>Interactive flashcards</li>
+                    <li>Progress tracking</li>
+                    <li>Audio pronunciation</li>
+                </ul>
+                <a href="enhanced-chinese-app.html" class="launch-btn">🎓 Start Learning</a>
+            </div>
+
+            <!-- Backup Guide -->
+            <div class="app-card">
+                <div class="app-icon">💾</div>
+                <div class="app-title">Backup Guide</div>
+                <div class="app-description">
+                    Complete guide for backing up and syncing your tasks between different devices and browsers.
+                </div>
+                <ul class="app-features">
+                    <li>Clipboard backup methods</li>
+                    <li>File export/import guide</li>
+                    <li>Cross-device sync instructions</li>
+                    <li>GitHub integration tips</li>
+                </ul>
+                <a href="task-backup-guide.html" class="launch-btn">📖 View Guide</a>
+            </div>
+
+            <!-- Celebration Demo -->
+            <div class="app-card">
+                <div class="app-icon">🎆</div>
+                <div class="app-title">Celebration Demo</div>
+                <div class="app-description">
+                    Learn about the firework celebration features and test the task manager's special effects.
+                </div>
+                <ul class="app-features">
+                    <li>Firework animation preview</li>
+                    <li>Feature testing instructions</li>
+                    <li>Keyboard shortcuts guide</li>
+                    <li>Celebration triggers explained</li>
+                </ul>
+                <a href="luong-celebration-demo.html" class="launch-btn">🎉 View Demo</a>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                Built with ❤️ for productivity and learning | 
+                <a href="https://github.com" class="github-link">View on GitHub</a>
+            </p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                All apps work offline and store data locally in your browser
+            </p>
+        </div>
+    </div>
+</body>
+</html>
