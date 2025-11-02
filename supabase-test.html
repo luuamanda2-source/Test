@@ -151,13 +151,21 @@
         </div>
         
         <div class="test-section">
-            <h3>4️⃣ Test Database</h3>
+            <h3>4️⃣ Fix Profile (If Needed)</h3>
+            <label>Display Name:</label>
+            <input type="text" id="fixProfileName" placeholder="Luong">
+            <button onclick="fixUserProfile()" id="fixProfileBtn" disabled>Create/Fix User Profile</button>
+            <div id="fixProfileResult"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5️⃣ Test Database</h3>
             <button onclick="testDatabase()" id="dbTestBtn" disabled>Test Database Operations</button>
             <div id="databaseResult"></div>
         </div>
         
         <div class="test-section">
-            <h3>5️⃣ Current Session</h3>
+            <h3>6️⃣ Current Session</h3>
             <button onclick="checkSession()">Check Current Session</button>
             <button onclick="signOut()">Sign Out</button>
             <div id="sessionResult"></div>
@@ -200,14 +208,19 @@ ${error.message}</div>`;
             const password = document.getElementById('signupPassword').value;
             const name = document.getElementById('signupName').value;
             const resultDiv = document.getElementById('signupResult');
-            
+
             if (!email || !password || !name) {
                 resultDiv.innerHTML = '<div class="result error">Please fill in all fields</div>';
                 return;
             }
-            
+
+            if (password.length < 6) {
+                resultDiv.innerHTML = '<div class="result error">Password must be at least 6 characters</div>';
+                return;
+            }
+
             resultDiv.innerHTML = '<div class="result info">Creating account...</div>';
-            
+
             try {
                 const { data, error } = await supabaseClient.auth.signUp({
                     email: email,
@@ -218,39 +231,59 @@ ${error.message}</div>`;
                         }
                     }
                 });
-                
+
                 if (error) throw error;
-                
-                // Create user profile
+
+                // Create user profile - CRITICAL for foreign key constraint
                 if (data.user) {
-                    const { error: profileError } = await supabaseClient
+                    resultDiv.innerHTML = '<div class="result info">Creating user profile...</div>';
+
+                    const { data: profileData, error: profileError } = await supabaseClient
                         .from('user_profiles')
                         .insert([{
                             id: data.user.id,
                             username: email.split('@')[0],
                             display_name: name,
                             email: email
-                        }]);
-                    
+                        }])
+                        .select();
+
                     if (profileError) {
-                        console.error('Profile creation error:', profileError);
+                        // If profile already exists, that's okay
+                        if (profileError.code !== '23505') { // 23505 = unique violation
+                            throw new Error(`Profile creation failed: ${profileError.message}`);
+                        }
+                    }
+
+                    // Create initial statistics record
+                    const { error: statsError } = await supabaseClient
+                        .from('user_statistics')
+                        .insert([{
+                            user_id: data.user.id
+                        }]);
+
+                    if (statsError && statsError.code !== '23505') {
+                        console.warn('Statistics creation warning:', statsError);
                     }
                 }
-                
+
                 resultDiv.innerHTML = `<div class="result success">✅ Account created successfully!
-                
+
 User ID: ${data.user.id}
 Email: ${data.user.email}
+Display Name: ${name}
 
-${data.user.identities.length === 0 ? 'Note: Please check your email to verify your account.' : 'You can now sign in!'}</div>`;
-                
+${data.user.identities.length === 0 ? 'Note: Please check your email to verify your account.' : 'Profile created! You can now test database operations.'}</div>`;
+
                 currentUser = data.user;
                 document.getElementById('dbTestBtn').disabled = false;
-                
+
             } catch (error) {
                 resultDiv.innerHTML = `<div class="result error">❌ Sign up failed:
-                
-${error.message}</div>`;
+
+${error.message}
+
+Please try again or use a different email.</div>`;
             }
         }
 
@@ -258,43 +291,140 @@ ${error.message}</div>`;
             const email = document.getElementById('signinEmail').value;
             const password = document.getElementById('signinPassword').value;
             const resultDiv = document.getElementById('signinResult');
-            
+
             if (!email || !password) {
                 resultDiv.innerHTML = '<div class="result error">Please fill in email and password</div>';
                 return;
             }
-            
+
             resultDiv.innerHTML = '<div class="result info">Signing in...</div>';
-            
+
             try {
                 const { data, error } = await supabaseClient.auth.signInWithPassword({
                     email: email,
                     password: password
                 });
-                
+
                 if (error) throw error;
-                
+
                 currentUser = data.user;
                 document.getElementById('dbTestBtn').disabled = false;
-                
+                document.getElementById('fixProfileBtn').disabled = false;
+
+                // Check if user profile exists
+                const { data: profileData, error: profileError } = await supabaseClient
+                    .from('user_profiles')
+                    .select('*')
+                    .eq('id', data.user.id)
+                    .single();
+
+                let profileWarning = '';
+                if (profileError || !profileData) {
+                    profileWarning = '\n\n⚠️ WARNING: User profile not found!\nPlease use step 4 to create your profile before testing database.';
+                }
+
                 resultDiv.innerHTML = `<div class="result success">✅ Signed in successfully!
-                
+
 User ID: ${data.user.id}
 Email: ${data.user.email}
-Display Name: ${data.user.user_metadata?.display_name || 'Not set'}
+Display Name: ${data.user.user_metadata?.display_name || 'Not set'}${profileWarning}
 
-You can now test database operations!</div>`;
-                
+${profileWarning ? 'Go to step 4 to fix your profile!' : 'You can now test database operations!'}</div>`;
+
             } catch (error) {
                 resultDiv.innerHTML = `<div class="result error">❌ Sign in failed:
-                
+
 ${error.message}</div>`;
+            }
+        }
+
+        async function fixUserProfile() {
+            const name = document.getElementById('fixProfileName').value;
+            const resultDiv = document.getElementById('fixProfileResult');
+
+            if (!currentUser) {
+                resultDiv.innerHTML = '<div class="result error">Please sign in first!</div>';
+                return;
+            }
+
+            if (!name) {
+                resultDiv.innerHTML = '<div class="result error">Please enter a display name</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="result info">Creating/fixing user profile...</div>';
+
+            try {
+                // Try to insert the profile
+                const { data: insertData, error: insertError } = await supabaseClient
+                    .from('user_profiles')
+                    .insert([{
+                        id: currentUser.id,
+                        username: currentUser.email.split('@')[0],
+                        display_name: name,
+                        email: currentUser.email
+                    }])
+                    .select();
+
+                if (insertError) {
+                    // If profile already exists (unique violation), update it instead
+                    if (insertError.code === '23505') {
+                        const { data: updateData, error: updateError } = await supabaseClient
+                            .from('user_profiles')
+                            .update({
+                                display_name: name,
+                                username: currentUser.email.split('@')[0]
+                            })
+                            .eq('id', currentUser.id)
+                            .select();
+
+                        if (updateError) throw updateError;
+
+                        resultDiv.innerHTML = `<div class="result success">✅ Profile updated successfully!
+
+User ID: ${currentUser.id}
+Email: ${currentUser.email}
+Display Name: ${name}
+
+You can now test database operations!</div>`;
+                    } else {
+                        throw insertError;
+                    }
+                } else {
+                    resultDiv.innerHTML = `<div class="result success">✅ Profile created successfully!
+
+User ID: ${currentUser.id}
+Email: ${currentUser.email}
+Display Name: ${name}
+
+You can now test database operations!</div>`;
+                }
+
+                // Also create statistics record if it doesn't exist
+                const { error: statsError } = await supabaseClient
+                    .from('user_statistics')
+                    .insert([{
+                        user_id: currentUser.id
+                    }]);
+
+                if (statsError && statsError.code !== '23505') {
+                    console.warn('Statistics creation warning:', statsError);
+                }
+
+                document.getElementById('dbTestBtn').disabled = false;
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Profile fix failed:
+
+${error.message}
+
+Details: ${JSON.stringify(error, null, 2)}</div>`;
             }
         }
 
         async function testDatabase() {
             const resultDiv = document.getElementById('databaseResult');
-            
+
             if (!currentUser) {
                 resultDiv.innerHTML = '<div class="result error">Please sign in first!</div>';
                 return;
@@ -369,47 +499,64 @@ Details: ${JSON.stringify(error, null, 2)}</div>`;
 
         async function checkSession() {
             const resultDiv = document.getElementById('sessionResult');
-            
+
             try {
                 const { data: { session } } = await supabaseClient.auth.getSession();
-                
+
                 if (session) {
                     currentUser = session.user;
                     document.getElementById('dbTestBtn').disabled = false;
-                    
+                    document.getElementById('fixProfileBtn').disabled = false;
+
+                    // Check if user profile exists
+                    const { data: profileData, error: profileError } = await supabaseClient
+                        .from('user_profiles')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .single();
+
+                    let profileStatus = '';
+                    if (profileError || !profileData) {
+                        profileStatus = '\n⚠️ WARNING: User profile not found! Click "Create/Fix User Profile" in step 4.';
+                    } else {
+                        profileStatus = '\n✅ User profile exists';
+                    }
+
                     resultDiv.innerHTML = `<div class="result success">✅ Active session found!
-                    
+
 User ID: ${session.user.id}
 Email: ${session.user.email}
 Display Name: ${session.user.user_metadata?.display_name || 'Not set'}
-Session expires: ${new Date(session.expires_at * 1000).toLocaleString()}</div>`;
+Session expires: ${new Date(session.expires_at * 1000).toLocaleString()}${profileStatus}</div>`;
                 } else {
                     currentUser = null;
                     document.getElementById('dbTestBtn').disabled = true;
+                    document.getElementById('fixProfileBtn').disabled = true;
                     resultDiv.innerHTML = '<div class="result info">No active session. Please sign in.</div>';
                 }
             } catch (error) {
                 resultDiv.innerHTML = `<div class="result error">❌ Error checking session:
-                
+
 ${error.message}</div>`;
             }
         }
 
         async function signOut() {
             const resultDiv = document.getElementById('sessionResult');
-            
+
             try {
                 const { error } = await supabaseClient.auth.signOut();
-                
+
                 if (error) throw error;
-                
+
                 currentUser = null;
                 document.getElementById('dbTestBtn').disabled = true;
-                
+                document.getElementById('fixProfileBtn').disabled = true;
+
                 resultDiv.innerHTML = '<div class="result success">✅ Signed out successfully!</div>';
             } catch (error) {
                 resultDiv.innerHTML = `<div class="result error">❌ Sign out failed:
-                
+
 ${error.message}</div>`;
             }
         }
