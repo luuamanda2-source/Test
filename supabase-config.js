@@ -97,15 +97,15 @@ async function signOut() {
 // Save task to Supabase
 async function saveTaskToSupabase(task) {
     if (!supabaseClient) throw new Error('Supabase not initialized');
-    
+
     const user = await getCurrentUser();
     if (!user) throw new Error('User not authenticated');
-    
+
     const taskData = {
-        id: task.id,
+        id: task.id, // Keep the string ID from the app
         user_id: user.id,
         title: task.title,
-        description: task.description,
+        description: task.description || '',
         priority: task.priority,
         frequency: task.frequency,
         deadline: task.deadline,
@@ -116,14 +116,32 @@ async function saveTaskToSupabase(task) {
         original_task_id: task.originalTaskId || null,
         recurrence_count: task.recurrenceCount || 0
     };
-    
-    const { data, error } = await supabaseClient
+
+    // First try to update, if not exists then insert
+    const { data: existingTask } = await supabaseClient
         .from('tasks')
-        .upsert([taskData], { onConflict: 'id' })
-        .select();
-    
-    if (error) throw error;
-    return data;
+        .select('id')
+        .eq('id', task.id)
+        .single();
+
+    let result;
+    if (existingTask) {
+        // Update existing task
+        result = await supabaseClient
+            .from('tasks')
+            .update(taskData)
+            .eq('id', task.id)
+            .select();
+    } else {
+        // Insert new task
+        result = await supabaseClient
+            .from('tasks')
+            .insert([taskData])
+            .select();
+    }
+
+    if (result.error) throw result.error;
+    return result.data;
 }
 
 // Load all tasks from Supabase

@@ -189,12 +189,17 @@
             }
         }
     </style>
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase Configuration -->
+    <script src="supabase-config.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🚀 Luong's Productivity Hub</h1>
             <p>Your personal collection of productivity and learning apps</p>
+            <div id="authStatus" style="margin-top: 15px; font-size: 0.9em;"></div>
         </div>
 
         <div class="apps-grid">
@@ -309,7 +314,54 @@
             <p style="margin-top: 5px; font-size: 0.85em; color: #999;">
                 Local apps work offline and store data in your browser. Cloud apps sync across devices.
             </p>
+            <div id="authButtons" style="margin-top: 15px;"></div>
         </div>
     </div>
+
+    <script>
+        // Initialize and check authentication status
+        document.addEventListener('DOMContentLoaded', async function() {
+            if (initSupabase()) {
+                const authenticated = await isAuthenticated();
+                const authStatusDiv = document.getElementById('authStatus');
+                const authButtonsDiv = document.getElementById('authButtons');
+
+                if (authenticated) {
+                    const user = await getCurrentUser();
+                    authStatusDiv.innerHTML = `
+                        <span style="background: rgba(40, 167, 69, 0.2); padding: 8px 16px; border-radius: 20px; color: white;">
+                            ☁️ Logged in as <strong>${user.email}</strong>
+                        </span>
+                    `;
+                    authButtonsDiv.innerHTML = `
+                        <button onclick="handleLogout()" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500;">
+                            🚪 Logout
+                        </button>
+                    `;
+                } else {
+                    authStatusDiv.innerHTML = `
+                        <span style="background: rgba(255, 193, 7, 0.2); padding: 8px 16px; border-radius: 20px; color: white;">
+                            ⚠️ Not logged in - Using local mode
+                        </span>
+                    `;
+                    authButtonsDiv.innerHTML = `
+                        <a href="login.html" style="display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; text-decoration: none;">
+                            🔐 Login / Sign Up
+                        </a>
+                    `;
+                }
+            }
+        });
+
+        async function handleLogout() {
+            try {
+                await signOut();
+                alert('✅ Logged out successfully!');
+                location.reload();
+            } catch (error) {
+                alert('❌ Logout failed: ' + error.message);
+            }
+        }
+    </script>
 </body>
 </html>

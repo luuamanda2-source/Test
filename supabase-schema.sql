@@ -41,16 +41,17 @@ CREATE POLICY "Users can insert own profile" ON public.user_profiles
 -- =====================================================
 -- 2. TASKS TABLE (Task Management System)
 -- =====================================================
+-- NOTE: Using TEXT for id to support timestamp-based IDs from the app
 CREATE TABLE public.tasks (
-    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE,
-    
+
     -- Task Details
     title TEXT NOT NULL,
     description TEXT,
     priority TEXT CHECK (priority IN ('low', 'medium', 'high')) DEFAULT 'medium',
     frequency TEXT CHECK (frequency IN ('once', 'daily', 'weekly', 'monthly')) DEFAULT 'once',
-    
+
     -- Dates and Times
     deadline DATE NOT NULL,
     time TIME,
@@ -58,14 +59,14 @@ CREATE TABLE public.tasks (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     completed_at TIMESTAMP WITH TIME ZONE,
     next_due TIMESTAMP WITH TIME ZONE,
-    
+
     -- Status
     completed BOOLEAN DEFAULT FALSE,
-    
+
     -- Metadata
-    original_task_id UUID, -- For recurring tasks, reference to original
+    original_task_id TEXT, -- For recurring tasks, reference to original
     recurrence_count INTEGER DEFAULT 0,
-    
+
     -- Indexes for performance
     CONSTRAINT valid_deadline CHECK (deadline >= CURRENT_DATE - INTERVAL '1 year')
 );

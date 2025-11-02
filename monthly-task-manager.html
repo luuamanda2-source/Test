@@ -538,11 +538,15 @@
             }
         }
     </style>
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase Configuration -->
+    <script src="supabase-config.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📅 Monthly Task Manager</h1>
+            <h1>📅 Luong's Monthly Task Manager</h1>
             <div class="date-display" id="currentDate"></div>
         </div>
 
@@ -659,12 +663,14 @@
         </div>
 
         <div style="background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); text-align: center; margin-top: 20px;">
+            <div id="authStatus" style="margin-bottom: 15px; padding: 10px; border-radius: 8px; font-weight: 500;"></div>
             <button class="btn btn-small" onclick="exportTasks()">📤 Export Tasks</button>
             <button class="btn btn-small" onclick="importTasks()">📥 Import Tasks</button>
             <button class="btn btn-small" onclick="exportToClipboard()">📋 Copy Tasks</button>
             <button class="btn btn-small" onclick="importFromClipboard()">📋 Paste Tasks</button>
             <button class="btn btn-small" onclick="clearCompleted()">🧹 Clear Completed</button>
             <button class="btn btn-small btn-danger" onclick="clearAllTasks()">🗑️ Clear All</button>
+            <button class="btn btn-small" onclick="window.location.href='index.html'">🏠 Home</button>
         </div>
     </div>
 
@@ -673,21 +679,159 @@
         let tasks = [];
         let currentView = 'list';
         let currentFilter = 'all';
+        let isSupabaseEnabled = false;
+        let currentUser = null;
 
         // Initialize app
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
             updateDateDisplay();
-            loadTasks();
+
+            // Initialize Supabase
+            if (initSupabase()) {
+                isSupabaseEnabled = true;
+                console.log('✅ Supabase enabled');
+
+                // Check if user is authenticated
+                const authenticated = await isAuthenticated();
+                if (authenticated) {
+                    currentUser = await getCurrentUser();
+                    console.log('✅ User authenticated:', currentUser.email);
+
+                    // Load tasks from Supabase
+                    await loadTasksFromCloud();
+
+                    // Setup real-time subscription
+                    setupRealtimeSubscription();
+                } else {
+                    // Show warning but allow local mode
+                    console.log('⚠️ User not authenticated, using localStorage');
+                    showAuthWarning();
+                    loadTasks();
+                }
+            } else {
+                console.log('⚠️ Supabase not available, using localStorage');
+                showAuthWarning();
+                loadTasks();
+            }
+
             setupEventListeners();
             updateStats();
             updateDisplay();
             setMinDate();
+            updateAuthStatus();
         });
+
+        // Show authentication warning
+        function showAuthWarning() {
+            const warningDiv = document.createElement('div');
+            warningDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+                color: #856404;
+                padding: 15px 30px;
+                border-radius: 10px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+                z-index: 10000;
+                max-width: 600px;
+                text-align: center;
+                border: 2px solid #ffc107;
+            `;
+            warningDiv.innerHTML = `
+                <strong>⚠️ Local Mode Active</strong><br>
+                You're not logged in. Tasks are saved locally only.<br>
+                <a href="login.html" style="color: #667eea; text-decoration: underline; font-weight: bold;">Login</a> for cloud sync across devices.
+            `;
+            document.body.appendChild(warningDiv);
+
+            // Auto-hide after 10 seconds
+            setTimeout(() => {
+                warningDiv.style.transition = 'opacity 0.5s ease';
+                warningDiv.style.opacity = '0';
+                setTimeout(() => warningDiv.remove(), 500);
+            }, 10000);
+        }
+
+        // Update authentication status display
+        function updateAuthStatus() {
+            const authStatusDiv = document.getElementById('authStatus');
+            if (!authStatusDiv) return;
+
+            if (isSupabaseEnabled && currentUser) {
+                authStatusDiv.innerHTML = `
+                    <span style="color: #28a745;">☁️ Cloud Sync Active</span> -
+                    Logged in as <strong>${currentUser.email}</strong>
+                `;
+                authStatusDiv.style.background = 'linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%)';
+                authStatusDiv.style.color = '#155724';
+            } else {
+                authStatusDiv.innerHTML = `
+                    <span style="color: #856404;">⚠️ Local Mode</span> -
+                    Tasks saved in browser only.
+                    <a href="index.html" style="color: #667eea; text-decoration: underline;">Login for cloud sync</a>
+                `;
+                authStatusDiv.style.background = 'linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%)';
+                authStatusDiv.style.color = '#856404';
+            }
+        }
 
         // Set minimum date to today
         function setMinDate() {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('taskDeadline').min = today;
+        }
+
+        // Setup real-time subscription for Supabase
+        function setupRealtimeSubscription() {
+            if (!isSupabaseEnabled || !supabaseClient) return;
+
+            console.log('🔄 Setting up real-time subscription...');
+
+            // Subscribe to changes in tasks table
+            const subscription = supabaseClient
+                .channel('tasks_changes')
+                .on('postgres_changes',
+                    {
+                        event: '*',
+                        schema: 'public',
+                        table: 'tasks',
+                        filter: `user_id=eq.${currentUser.id}`
+                    },
+                    async (payload) => {
+                        console.log('🔔 Real-time update received:', payload);
+
+                        // Reload tasks from Supabase to stay in sync
+                        await loadTasksFromCloud();
+                        updateStats();
+                        updateDisplay();
+                    }
+                )
+                .subscribe((status) => {
+                    console.log('📡 Subscription status:', status);
+                });
+        }
+
+        // Load tasks from Supabase cloud
+        async function loadTasksFromCloud() {
+            if (!isSupabaseEnabled) {
+                loadTasks();
+                return;
+            }
+
+            try {
+                const cloudTasks = await loadTasksFromSupabase();
+                tasks = cloudTasks;
+                console.log(`✅ Loaded ${tasks.length} tasks from Supabase`);
+
+                // Also save to localStorage as backup
+                saveTasks();
+            } catch (error) {
+                console.error('❌ Error loading tasks from Supabase:', error);
+                showNotification('Failed to load tasks from cloud, using local data', 'warning');
+                loadTasks();
+            }
         }
 
         // Update date display
@@ -757,7 +901,7 @@
         }
 
         // Add new task
-        function addTask() {
+        async function addTask() {
             const title = document.getElementById('taskTitle').value.trim();
             const description = document.getElementById('taskDescription').value.trim();
             const priority = document.getElementById('taskPriority').value;
@@ -768,6 +912,12 @@
             if (!title || !deadline) {
                 showNotification('Please fill in required fields (Title and Deadline)', 'error');
                 return;
+            }
+
+            // Check for duplicates
+            const isDuplicate = await checkForDuplicateTask(title, deadline, time);
+            if (isDuplicate) {
+                return; // User cancelled or duplicate was confirmed
             }
 
             const task = {
@@ -785,6 +935,18 @@
             };
 
             tasks.push(task);
+
+            // Save to Supabase if enabled
+            if (isSupabaseEnabled && currentUser) {
+                try {
+                    await saveTaskToSupabase(task);
+                    console.log('✅ Task saved to Supabase:', task.title);
+                } catch (error) {
+                    console.error('❌ Error saving task to Supabase:', error);
+                    showNotification('Task saved locally, but failed to sync to cloud', 'warning');
+                }
+            }
+
             saveTasks();
             updateStats();
             updateDisplay();
@@ -825,14 +987,51 @@
             return nextDue.toISOString();
         }
 
+        // Check for duplicate tasks
+        async function checkForDuplicateTask(title, deadline, time) {
+            const duplicates = tasks.filter(task => {
+                const sameTitle = task.title.toLowerCase() === title.toLowerCase();
+                const sameDeadline = task.deadline === deadline;
+                const sameTime = task.time === time || (!task.time && !time);
+
+                return sameTitle && sameDeadline && sameTime && !task.completed;
+            });
+
+            if (duplicates.length > 0) {
+                const duplicate = duplicates[0];
+                const message = `⚠️ Possible Duplicate Task Detected!\n\n` +
+                    `A similar task already exists:\n` +
+                    `Title: "${duplicate.title}"\n` +
+                    `Deadline: ${duplicate.deadline}${duplicate.time ? ' at ' + duplicate.time : ''}\n` +
+                    `Priority: ${duplicate.priority}\n\n` +
+                    `Do you still want to add this task?`;
+
+                const confirmed = confirm(message);
+                return !confirmed; // Return true if user cancelled (is duplicate)
+            }
+
+            return false; // Not a duplicate
+        }
+
         // Toggle task completion
-        function toggleTask(taskId) {
+        async function toggleTask(taskId) {
             const task = tasks.find(t => t.id === taskId);
             if (!task) return;
 
             const wasCompleted = task.completed;
             task.completed = !task.completed;
             task.completedAt = task.completed ? new Date().toISOString() : null;
+
+            // Save to Supabase if enabled
+            if (isSupabaseEnabled && currentUser) {
+                try {
+                    await saveTaskToSupabase(task);
+                    console.log('✅ Task status updated in Supabase:', task.title);
+                } catch (error) {
+                    console.error('❌ Error updating task in Supabase:', error);
+                    showNotification('Task updated locally, but failed to sync to cloud', 'warning');
+                }
+            }
 
             // For recurring tasks, create next instance when completed
             if (task.completed && !wasCompleted && task.frequency !== 'once') {
@@ -871,7 +1070,7 @@
         }
 
         // Create next recurrence for recurring tasks
-        function createNextRecurrence(completedTask) {
+        async function createNextRecurrence(completedTask) {
             const nextTask = {
                 ...completedTask,
                 id: Date.now().toString() + '_recur',
@@ -887,6 +1086,16 @@
 
             tasks.push(nextTask);
 
+            // Save to Supabase if enabled
+            if (isSupabaseEnabled && currentUser) {
+                try {
+                    await saveTaskToSupabase(nextTask);
+                    console.log('✅ Next recurrence saved to Supabase:', nextTask.title);
+                } catch (error) {
+                    console.error('❌ Error saving next recurrence to Supabase:', error);
+                }
+            }
+
             // Log for debugging
             console.log(`📅 Created next ${completedTask.frequency} task:`, {
                 title: nextTask.title,
@@ -899,9 +1108,21 @@
         }
 
         // Delete task
-        function deleteTask(taskId) {
+        async function deleteTask(taskId) {
             if (confirm('Are you sure you want to delete this task?')) {
                 tasks = tasks.filter(t => t.id !== taskId);
+
+                // Delete from Supabase if enabled
+                if (isSupabaseEnabled && currentUser) {
+                    try {
+                        await deleteTaskFromSupabase(taskId);
+                        console.log('✅ Task deleted from Supabase');
+                    } catch (error) {
+                        console.error('❌ Error deleting task from Supabase:', error);
+                        showNotification('Task deleted locally, but failed to sync to cloud', 'warning');
+                    }
+                }
+
                 saveTasks();
                 updateStats();
                 updateDisplay();
