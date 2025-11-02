@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migrate Tasks to Supabase</title>
+    
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .step h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #28a745 0%, #20873a 100%);
+        }
+        
+        .result {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        
+        .warning {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+        
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .task-preview {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .task-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📤 Migrate Tasks to Supabase Cloud</h1>
+        <p class="subtitle">Save your existing tasks from localStorage to Supabase cloud database</p>
+        
+        <div class="step">
+            <h3>Step 1: Sign In to Supabase</h3>
+            <label>Email:</label>
+            <input type="email" id="email" placeholder="your@email.com">
+            <label>Password:</label>
+            <input type="password" id="password" placeholder="••••••••">
+            <button onclick="signIn()">Sign In</button>
+            <div id="authResult"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 2: Load Tasks from localStorage</h3>
+            <p>Click to load tasks from your browser's localStorage (from monthly-task-manager.html)</p>
+            <button onclick="loadLocalTasks()" id="loadBtn" disabled>Load Local Tasks</button>
+            <div id="loadResult"></div>
+            <div id="taskPreview" class="task-preview" style="display: none;"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Step 3: Upload to Supabase</h3>
+            <p>Upload your tasks to Supabase cloud database</p>
+            <button onclick="uploadToSupabase()" id="uploadBtn" disabled class="btn-success">Upload to Cloud</button>
+            <div id="uploadResult"></div>
+        </div>
+        
+        <div class="step">
+            <h3>Alternative: Paste Tasks JSON</h3>
+            <p>If you have tasks copied from the "Copy Tasks" button, paste them here:</p>
+            <label>Paste Tasks JSON:</label>
+            <textarea id="pasteJson" rows="6" placeholder='[{"id":"123","title":"Task 1",...}]'></textarea>
+            <button onclick="loadFromPaste()">Load from Paste</button>
+            <div id="pasteResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://kkbpztplpnaygfqmtimf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrYnB6dHBscG5heWdmcW10aW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwODQ2MzYsImV4cCI6MjA3NzY2MDYzNn0.y4-_pRmDM0dCkNIilDpfp6tFkEOLk96PvSnSitVnTbM';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentUser = null;
+        let tasksToUpload = [];
+
+        async function signIn() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('authResult');
+            
+            if (!email || !password) {
+                resultDiv.innerHTML = '<div class="result error">Please fill in email and password</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="result info">Signing in...</div>';
+            
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                currentUser = data.user;
+                document.getElementById('loadBtn').disabled = false;
+                
+                resultDiv.innerHTML = `<div class="result success">✅ Signed in successfully!
+
+User: ${data.user.email}
+
+You can now load your local tasks.</div>`;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Sign in failed: ${error.message}</div>`;
+            }
+        }
+
+        function loadLocalTasks() {
+            const resultDiv = document.getElementById('loadResult');
+            const previewDiv = document.getElementById('taskPreview');
+            
+            try {
+                const saved = localStorage.getItem('monthlyTaskManager_tasks');
+                
+                if (!saved) {
+                    resultDiv.innerHTML = '<div class="result warning">⚠️ No tasks found in localStorage.\n\nMake sure you\'re running this from the same browser where you used monthly-task-manager.html\n\nOr use the "Paste Tasks JSON" option below.</div>';
+                    return;
+                }
+                
+                tasksToUpload = JSON.parse(saved);
+                
+                if (tasksToUpload.length === 0) {
+                    resultDiv.innerHTML = '<div class="result warning">⚠️ No tasks found in localStorage.</div>';
+                    return;
+                }
+                
+                // Show preview
+                previewDiv.style.display = 'block';
+                previewDiv.innerHTML = tasksToUpload.map(task => `
+                    <div class="task-item">
+                        <strong>${task.title}</strong><br>
+                        <small>Priority: ${task.priority} | Frequency: ${task.frequency} | Deadline: ${task.deadline}</small>
+                    </div>
+                `).join('');
+                
+                resultDiv.innerHTML = `<div class="result success">✅ Loaded ${tasksToUpload.length} task(s) from localStorage!
+
+Ready to upload to Supabase.</div>`;
+                
+                document.getElementById('uploadBtn').disabled = false;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Error loading tasks: ${error.message}</div>`;
+            }
+        }
+
+        function loadFromPaste() {
+            const resultDiv = document.getElementById('pasteResult');
+            const previewDiv = document.getElementById('taskPreview');
+            const json = document.getElementById('pasteJson').value;
+            
+            if (!json) {
+                resultDiv.innerHTML = '<div class="result error">Please paste your tasks JSON</div>';
+                return;
+            }
+            
+            try {
+                tasksToUpload = JSON.parse(json);
+                
+                if (!Array.isArray(tasksToUpload)) {
+                    throw new Error('Tasks must be an array');
+                }
+                
+                // Show preview
+                previewDiv.style.display = 'block';
+                previewDiv.innerHTML = tasksToUpload.map(task => `
+                    <div class="task-item">
+                        <strong>${task.title}</strong><br>
+                        <small>Priority: ${task.priority} | Frequency: ${task.frequency} | Deadline: ${task.deadline}</small>
+                    </div>
+                `).join('');
+                
+                resultDiv.innerHTML = `<div class="result success">✅ Loaded ${tasksToUpload.length} task(s) from paste!
+
+Ready to upload to Supabase.</div>`;
+                
+                document.getElementById('uploadBtn').disabled = false;
+                document.getElementById('loadBtn').disabled = false;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Invalid JSON: ${error.message}</div>`;
+            }
+        }
+
+        async function uploadToSupabase() {
+            const resultDiv = document.getElementById('uploadResult');
+            
+            if (!currentUser) {
+                resultDiv.innerHTML = '<div class="result error">Please sign in first!</div>';
+                return;
+            }
+            
+            if (tasksToUpload.length === 0) {
+                resultDiv.innerHTML = '<div class="result error">No tasks to upload. Load tasks first!</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="result info">Uploading tasks to Supabase...</div>';
+            
+            try {
+                // Convert tasks to Supabase format
+                const supabaseTasks = tasksToUpload.map(task => ({
+                    id: task.id,
+                    user_id: currentUser.id,
+                    title: task.title,
+                    description: task.description || '',
+                    priority: task.priority,
+                    frequency: task.frequency,
+                    deadline: task.deadline,
+                    time: task.time || null,
+                    completed: task.completed || false,
+                    completed_at: task.completedAt || null,
+                    next_due: task.nextDue,
+                    original_task_id: task.originalTaskId || null,
+                    recurrence_count: task.recurrenceCount || 0
+                }));
+                
+                // Upload in batches
+                const batchSize = 50;
+                let uploaded = 0;
+                let errors = [];
+                
+                for (let i = 0; i < supabaseTasks.length; i += batchSize) {
+                    const batch = supabaseTasks.slice(i, i + batchSize);
+                    
+                    const { data, error } = await supabaseClient
+                        .from('tasks')
+                        .upsert(batch, { onConflict: 'id' })
+                        .select();
+                    
+                    if (error) {
+                        errors.push(`Batch ${i / batchSize + 1}: ${error.message}`);
+                    } else {
+                        uploaded += batch.length;
+                    }
+                    
+                    resultDiv.innerHTML = `<div class="result info">Uploading... ${uploaded}/${tasksToUpload.length}</div>`;
+                }
+                
+                if (errors.length > 0) {
+                    resultDiv.innerHTML = `<div class="result warning">⚠️ Partial upload completed
+
+Uploaded: ${uploaded}/${tasksToUpload.length}
+Errors: ${errors.length}
+
+${errors.join('\n')}</div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="result success">✅ Successfully uploaded ${uploaded} task(s) to Supabase!
+
+Your tasks are now saved in the cloud!
+You can access them from any device by signing in.</div>`;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Upload failed: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
