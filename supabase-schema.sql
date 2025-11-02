@@ -7,9 +7,9 @@
 -- 3. User preferences and settings
 -- 4. Cross-device synchronization
 -- =====================================================
-
--- Enable Row Level Security
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret-here';
+-- NOTE: Supabase automatically handles JWT secrets and RLS
+-- No need to manually configure database-level settings
+-- =====================================================
 
 -- =====================================================
 -- 1. USERS TABLE (extends Supabase auth.users)
