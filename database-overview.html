@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Database Overview - Luong's Productivity Hub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        .table-card {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .table-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .field-list {
+            list-style: none;
+            padding: 0;
+        }
+        .field-list li {
+            padding: 8px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+        .field-type {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .primary-key {
+            background: #fff3cd;
+            border-left: 3px solid #ffc107;
+        }
+        .foreign-key {
+            background: #d4edda;
+            border-left: 3px solid #28a745;
+        }
+        .diagram {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .benefit-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .benefit-box h3 {
+            margin-top: 0;
+        }
+        .benefit-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        .benefit-box li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+        .benefit-box li:before {
+            content: '✅';
+            position: absolute;
+            left: 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        .code-block {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🗄️ Supabase Database Overview</h1>
+        <p style="text-align: center; font-size: 1.2em; color: #666;">
+            Complete database schema for Luong's Productivity Hub
+        </p>
+
+        <div class="benefit-box">
+            <h3>🎯 What This Database Solves</h3>
+            <ul>
+                <li><strong>Cross-Device Sync:</strong> Access your tasks and vocabulary from any device</li>
+                <li><strong>Data Persistence:</strong> Never lose your data when switching browsers</li>
+                <li><strong>Cloud Backup:</strong> Automatic backups of all your productivity data</li>
+                <li><strong>Real-time Updates:</strong> Changes appear instantly across all devices</li>
+                <li><strong>Secure Storage:</strong> Your data is encrypted and protected</li>
+                <li><strong>Offline Support:</strong> Apps work offline and sync when online</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>📊 Database Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">6</div>
+                    <div class="stat-label">Tables</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">50+</div>
+                    <div class="stat-label">Fields</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">2</div>
+                    <div class="stat-label">Views</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">RLS Protected</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🗂️ Database Tables</h2>
+
+            <div class="table-card">
+                <div class="table-name">1️⃣ user_profiles</div>
+                <p><strong>Purpose:</strong> Store user information and preferences</p>
+                <ul class="field-list">
+                    <li class="primary-key">id <span class="field-type">UUID</span> - Primary Key (from Supabase Auth)</li>
+                    <li>username <span class="field-type">TEXT</span> - Unique username</li>
+                    <li>display_name <span class="field-type">TEXT</span> - Display name (e.g., "Luong")</li>
+                    <li>email <span class="field-type">TEXT</span> - User email</li>
+                    <li>timezone <span class="field-type">TEXT</span> - User timezone</li>
+                    <li>language_preference <span class="field-type">TEXT</span> - Preferred language</li>
+                    <li>created_at <span class="field-type">TIMESTAMP</span> - Account creation date</li>
+                    <li>updated_at <span class="field-type">TIMESTAMP</span> - Last update</li>
+                </ul>
+            </div>
+
+            <div class="table-card">
+                <div class="table-name">2️⃣ tasks</div>
+                <p><strong>Purpose:</strong> Store all task management data from monthly-task-manager.html</p>
+                <ul class="field-list">
+                    <li class="primary-key">id <span class="field-type">UUID</span> - Primary Key</li>
+                    <li class="foreign-key">user_id <span class="field-type">UUID</span> - Foreign Key → user_profiles</li>
+                    <li>title <span class="field-type">TEXT</span> - Task title (required)</li>
+                    <li>description <span class="field-type">TEXT</span> - Task description with URLs</li>
+                    <li>priority <span class="field-type">TEXT</span> - low, medium, high</li>
+                    <li>frequency <span class="field-type">TEXT</span> - once, daily, weekly, monthly</li>
+                    <li>deadline <span class="field-type">DATE</span> - Task deadline (required)</li>
+                    <li>time <span class="field-type">TIME</span> - Optional specific time</li>
+                    <li>completed <span class="field-type">BOOLEAN</span> - Completion status</li>
+                    <li>completed_at <span class="field-type">TIMESTAMP</span> - When completed</li>
+                    <li>next_due <span class="field-type">TIMESTAMP</span> - Next occurrence for recurring tasks</li>
+                    <li>original_task_id <span class="field-type">UUID</span> - Reference to original recurring task</li>
+                    <li>recurrence_count <span class="field-type">INTEGER</span> - How many times recurred</li>
+                </ul>
+                <p><strong>Indexes:</strong> user_id, deadline, next_due, completed, frequency</p>
+            </div>
+
+            <div class="table-card">
+                <div class="table-name">3️⃣ chinese_vocabulary</div>
+                <p><strong>Purpose:</strong> Store Chinese learning vocabulary from enhanced-chinese-app.html</p>
+                <ul class="field-list">
+                    <li class="primary-key">id <span class="field-type">UUID</span> - Primary Key</li>
+                    <li class="foreign-key">user_id <span class="field-type">UUID</span> - Foreign Key → user_profiles</li>
+                    <li>chinese <span class="field-type">TEXT</span> - Chinese characters (e.g., "你好")</li>
+                    <li>pinyin <span class="field-type">TEXT</span> - Romanization (e.g., "nǐ hǎo")</li>
+                    <li>meaning <span class="field-type">TEXT</span> - English meaning</li>
+                    <li>hsk_level <span class="field-type">TEXT</span> - HSK 1-6 classification</li>
+                    <li>review_count <span class="field-type">INTEGER</span> - Times reviewed</li>
+                    <li>correct_count <span class="field-type">INTEGER</span> - Times answered correctly</li>
+                    <li>difficulty_level <span class="field-type">INTEGER</span> - 1-5 difficulty rating</li>
+                    <li>next_review <span class="field-type">TIMESTAMP</span> - Spaced repetition schedule</li>
+                    <li>ease_factor <span class="field-type">DECIMAL</span> - SRS ease factor</li>
+                    <li>interval_days <span class="field-type">INTEGER</span> - Days until next review</li>
+                    <li>date_added <span class="field-type">TIMESTAMP</span> - When word was added</li>
+                </ul>
+                <p><strong>Unique Constraint:</strong> (user_id, chinese) - No duplicate words per user</p>
+            </div>
+
+            <div class="table-card">
+                <div class="table-name">4️⃣ learning_sessions</div>
+                <p><strong>Purpose:</strong> Track Chinese learning progress and sessions</p>
+                <ul class="field-list">
+                    <li class="primary-key">id <span class="field-type">UUID</span> - Primary Key</li>
+                    <li class="foreign-key">user_id <span class="field-type">UUID</span> - Foreign Key → user_profiles</li>
+                    <li>session_date <span class="field-type">DATE</span> - Date of session</li>
+                    <li>session_type <span class="field-type">TEXT</span> - vocabulary, pinyin, flashcard, exercise</li>
+                    <li>duration_minutes <span class="field-type">INTEGER</span> - Session duration</li>
+                    <li>total_questions <span class="field-type">INTEGER</span> - Questions answered</li>
+                    <li>correct_answers <span class="field-type">INTEGER</span> - Correct answers</li>
+                    <li>accuracy_percentage <span class="field-type">DECIMAL</span> - Accuracy rate</li>
+                    <li>words_learned <span class="field-type">INTEGER</span> - New words learned</li>
+                    <li>streak_count <span class="field-type">INTEGER</span> - Current streak</li>
+                </ul>
+            </div>
+
+            <div class="table-card">
+                <div class="table-name">5️⃣ user_statistics</div>
+                <p><strong>Purpose:</strong> Aggregated statistics for achievements and progress</p>
+                <ul class="field-list">
+                    <li class="primary-key">id <span class="field-type">UUID</span> - Primary Key</li>
+                    <li class="foreign-key">user_id <span class="field-type">UUID</span> - Foreign Key → user_profiles (unique)</li>
+                    <li>total_tasks_created <span class="field-type">INTEGER</span> - All-time tasks created</li>
+                    <li>total_tasks_completed <span class="field-type">INTEGER</span> - All-time tasks completed</li>
+                    <li>current_task_streak <span class="field-type">INTEGER</span> - Current daily task streak</li>
+                    <li>longest_task_streak <span class="field-type">INTEGER</span> - Best streak ever</li>
+                    <li>total_vocabulary_words <span class="field-type">INTEGER</span> - Total words learned</li>
+                    <li>current_learning_streak <span class="field-type">INTEGER</span> - Current learning streak</li>
+                    <li>total_celebrations <span class="field-type">INTEGER</span> - Firework celebrations triggered</li>
+                    <li>last_celebration <span class="field-type">TIMESTAMP</span> - Last celebration time</li>
+                </ul>
+            </div>
+
+            <div class="table-card">
+                <div class="table-name">6️⃣ app_settings</div>
+                <p><strong>Purpose:</strong> Store user preferences and app settings</p>
+                <ul class="field-list">
+                    <li class="primary-key">id <span class="field-type">UUID</span> - Primary Key</li>
+                    <li class="foreign-key">user_id <span class="field-type">UUID</span> - Foreign Key → user_profiles</li>
+                    <li>setting_key <span class="field-type">TEXT</span> - Setting name</li>
+                    <li>setting_value <span class="field-type">JSONB</span> - Setting value (flexible JSON)</li>
+                    <li>app_name <span class="field-type">TEXT</span> - task_manager, chinese_learning, global</li>
+                </ul>
+                <p><strong>Example Settings:</strong> theme, notifications, default_view, celebration_enabled</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔗 Database Relationships</h2>
+            <div class="diagram">
+                <pre style="text-align: left; font-family: monospace; font-size: 0.9em;">
+┌─────────────────┐
+│  user_profiles  │ (Central table)
+│  - id (PK)      │
+│  - username     │
+│  - email        │
+└────────┬────────┘
+         │
+         ├──────────────────┬──────────────────┬──────────────────┬──────────────────┐
+         │                  │                  │                  │                  │
+         ▼                  ▼                  ▼                  ▼                  ▼
+┌────────────────┐  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────┐  ┌──────────────┐
+│     tasks      │  │ chinese_vocab    │  │ learning_sessions│  │ user_stats   │  │ app_settings │
+│ - id (PK)      │  │ - id (PK)        │  │ - id (PK)        │  │ - id (PK)    │  │ - id (PK)    │
+│ - user_id (FK) │  │ - user_id (FK)   │  │ - user_id (FK)   │  │ - user_id    │  │ - user_id    │
+│ - title        │  │ - chinese        │  │ - session_date   │  │ - total_tasks│  │ - key        │
+│ - deadline     │  │ - pinyin         │  │ - accuracy       │  │ - streaks    │  │ - value      │
+│ - frequency    │  │ - hsk_level      │  │ - streak         │  │ - celebrations│ │ - app_name   │
+└────────────────┘  └──────────────────┘  └──────────────────┘  └──────────────┘  └──────────────┘
+                </pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔒 Security Features</h2>
+            <p><strong>Row Level Security (RLS) Policies:</strong></p>
+            <div class="code-block">
+-- Users can only access their own data
+CREATE POLICY "Users can manage own tasks" ON public.tasks
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Same policy applied to all tables
+-- Enforced at database level, not application level
+            </div>
+            <p><strong>What this means:</strong></p>
+            <ul>
+                <li>✅ Your data is completely private</li>
+                <li>✅ Even with API keys, others can't see your data</li>
+                <li>✅ Security enforced by PostgreSQL, not JavaScript</li>
+                <li>✅ No way to bypass (unlike localStorage)</li>
+            </ul>
+        </div>
+
+        <div class="benefit-box">
+            <h3>🚀 Ready to Deploy?</h3>
+            <p>Follow these steps:</p>
+            <ol style="padding-left: 20px;">
+                <li>Create Supabase account at <a href="https://supabase.com" style="color: white; text-decoration: underline;">supabase.com</a></li>
+                <li>Run the SQL schema from <code>supabase-schema.sql</code></li>
+                <li>Get your API keys from Supabase dashboard</li>
+                <li>Integrate with your apps (we'll create integration code next)</li>
+                <li>Test cross-device sync</li>
+                <li>Enjoy cloud-powered productivity! 🎉</li>
+            </ol>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <p style="color: #666;">
+                📚 See <strong>supabase-setup-guide.md</strong> for detailed setup instructions
+            </p>
+        </div>
+    </div>
+</body>
+</html>
