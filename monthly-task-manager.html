@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luong's Tracker Task Manager</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .date-display {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .view-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .view-btn {
+            padding: 10px 20px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .view-btn.active, .view-btn:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-number {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .task-input-section, .task-list-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .task-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .input-group label {
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .input-group input, .input-group select, .input-group textarea {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .frequency-select, .priority-select {
+            background: white;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #229954 100%);
+        }
+
+        .task-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid #667eea;
+            background: transparent;
+            color: #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .task-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .task-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .task-item.completed {
+            opacity: 0.7;
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .task-item.overdue {
+            border-left: 4px solid #e74c3c;
+            background: #fff5f5;
+        }
+
+        .task-item.due-soon {
+            border-left: 4px solid #f39c12;
+            background: #fffbf0;
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .task-title {
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #333;
+            flex: 1;
+            margin-right: 10px;
+        }
+
+        .task-item.completed .task-title {
+            text-decoration: line-through;
+        }
+
+        .task-badges {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .task-priority, .task-frequency {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .priority-high {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .priority-medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .priority-low {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .frequency-daily {
+            background: #e3f2fd;
+            color: #1565c0;
+        }
+
+        .frequency-weekly {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .frequency-monthly {
+            background: #fff8e1;
+            color: #f57c00;
+        }
+
+        .frequency-once {
+            background: #f1f8e9;
+            color: #558b2f;
+        }
+
+        .task-description {
+            color: #666;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .task-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8em;
+            color: #888;
+        }
+
+        .task-dates {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .task-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #888;
+            padding: 40px;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .calendar-view {
+            display: none;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .calendar-view.active {
+            display: grid;
+        }
+
+        .calendar-day {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 120px;
+            border: 1px solid #e9ecef;
+        }
+
+        .calendar-day-header {
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            color: #667eea;
+        }
+
+        .calendar-task {
+            background: #667eea;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7em;
+            margin-bottom: 2px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-overview {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .view-selector {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Animation for overdue tasks */
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        /* Enhanced urgency indicators */
+        .task-item.overdue {
+            border-left: 5px solid #e74c3c;
+            background: linear-gradient(90deg, #fff5f5 0%, #ffffff 100%);
+            box-shadow: 0 2px 8px rgba(231, 76, 60, 0.2);
+        }
+
+        .task-item.due-soon {
+            border-left: 5px solid #f39c12;
+            background: linear-gradient(90deg, #fffbf0 0%, #ffffff 100%);
+            box-shadow: 0 2px 8px rgba(243, 156, 18, 0.2);
+        }
+
+        /* Enhanced link styling in task descriptions */
+        .task-description a {
+            color: #667eea !important;
+            text-decoration: underline !important;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .task-description a:hover {
+            color: #5a6fd8 !important;
+            text-decoration: none !important;
+        }
+
+        .task-description a:visited {
+            color: #8e44ad !important;
+        }
+
+        /* Firework celebration styles */
+        .firework-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10000;
+            overflow: hidden;
+        }
+
+        .firework {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            animation: firework 2s ease-out forwards;
+        }
+
+        .firework.red { background: #ff6b6b; }
+        .firework.blue { background: #4ecdc4; }
+        .firework.yellow { background: #ffe66d; }
+        .firework.green { background: #95e1d3; }
+        .firework.purple { background: #a8e6cf; }
+        .firework.orange { background: #ffb347; }
+
+        @keyframes firework {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(3);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(6);
+                opacity: 0;
+            }
+        }
+
+        .celebration-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 20px;
+            font-size: 2em;
+            font-weight: bold;
+            text-align: center;
+            z-index: 10001;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: celebrationPop 3s ease-out forwards;
+        }
+
+        @keyframes celebrationPop {
+            0% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+            20% {
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 1;
+            }
+            80% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Monthly Task Manager</h1>
+            <div class="date-display" id="currentDate"></div>
+        </div>
+
+        <div class="view-selector">
+            <button class="view-btn active" data-view="list">📋 List View</button>
+            <button class="view-btn" data-view="calendar">📅 Calendar View</button>
+            <button class="view-btn" data-view="today">📍 Today's Tasks</button>
+        </div>
+
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTasks">0</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="completedTasks">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="overdueTasks">0</div>
+                <div class="stat-label">Overdue</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayTasks">0</div>
+                <div class="stat-label">Due Today</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="weekTasks">0</div>
+                <div class="stat-label">This Week</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="monthTasks">0</div>
+                <div class="stat-label">This Month</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="task-input-section">
+                <h2 class="section-title">➕ Add New Task</h2>
+                <form class="task-form" id="taskForm">
+                    <div class="input-group">
+                        <label for="taskTitle">Task Title *</label>
+                        <input type="text" id="taskTitle" required placeholder="Enter task title...">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="taskDescription">Description</label>
+                        <textarea id="taskDescription" rows="3" placeholder="Detailed description of the task..."></textarea>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="taskPriority">Priority</label>
+                            <select id="taskPriority" class="priority-select">
+                                <option value="low">Low Priority</option>
+                                <option value="medium" selected>Medium Priority</option>
+                                <option value="high">High Priority</option>
+                            </select>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="taskFrequency">Frequency</label>
+                            <select id="taskFrequency" class="frequency-select">
+                                <option value="once">One-time Task</option>
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="taskDeadline">Deadline *</label>
+                            <input type="date" id="taskDeadline" required>
+                        </div>
+
+                        <div class="input-group">
+                            <label for="taskTime">Time (Optional)</label>
+                            <input type="time" id="taskTime">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn">
+                        ➕ Add Task
+                    </button>
+                </form>
+            </div>
+
+            <div class="task-list-section">
+                <h2 class="section-title">📝 Task Management</h2>
+
+                <div class="task-filters">
+                    <button class="filter-btn active" data-filter="all">All</button>
+                    <button class="filter-btn" data-filter="today">Today</button>
+                    <button class="filter-btn" data-filter="week">This Week</button>
+                    <button class="filter-btn" data-filter="month">This Month</button>
+                    <button class="filter-btn" data-filter="overdue">Overdue</button>
+                    <button class="filter-btn" data-filter="completed">Completed</button>
+                    <button class="filter-btn" data-filter="high">High Priority</button>
+                </div>
+
+                <div id="listView" class="task-list">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <p>No tasks yet. Add your first task to get started!</p>
+                    </div>
+                </div>
+
+                <div id="calendarView" class="calendar-view">
+                    <!-- Calendar will be generated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.95); padding: 25px; border-radius: 15px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); text-align: center; margin-top: 20px;">
+            <button class="btn btn-small" onclick="exportTasks()">📤 Export Tasks</button>
+            <button class="btn btn-small" onclick="importTasks()">📥 Import Tasks</button>
+            <button class="btn btn-small" onclick="clearCompleted()">🧹 Clear Completed</button>
+            <button class="btn btn-small btn-danger" onclick="clearAllTasks()">🗑️ Clear All</button>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let tasks = [];
+        let currentView = 'list';
+        let currentFilter = 'all';
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            updateDateDisplay();
+            loadTasks();
+            setupEventListeners();
+            updateStats();
+            updateDisplay();
+            setMinDate();
+        });
+
+        // Set minimum date to today
+        function setMinDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('taskDeadline').min = today;
+        }
+
+        // Update date display
+        function updateDateDisplay() {
+            const now = new Date();
+            const options = {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Task form submission
+            document.getElementById('taskForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                addTask();
+            });
+
+            // View selector buttons
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    switchView(this.dataset.view);
+                });
+            });
+
+            // Filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    setFilter(this.dataset.filter);
+                });
+            });
+
+            // Frequency change handler
+            document.getElementById('taskFrequency').addEventListener('change', function() {
+                updateDeadlineBasedOnFrequency();
+            });
+        }
+
+        // Update deadline based on frequency selection
+        function updateDeadlineBasedOnFrequency() {
+            const frequency = document.getElementById('taskFrequency').value;
+            const deadlineInput = document.getElementById('taskDeadline');
+            const today = new Date();
+
+            let suggestedDate = new Date(today);
+
+            switch (frequency) {
+                case 'daily':
+                    suggestedDate.setDate(today.getDate() + 1);
+                    break;
+                case 'weekly':
+                    suggestedDate.setDate(today.getDate() + 7);
+                    break;
+                case 'monthly':
+                    suggestedDate.setMonth(today.getMonth() + 1);
+                    break;
+                default:
+                    // For 'once', don't auto-set
+                    return;
+            }
+
+            deadlineInput.value = suggestedDate.toISOString().split('T')[0];
+        }
+
+        // Add new task
+        function addTask() {
+            const title = document.getElementById('taskTitle').value.trim();
+            const description = document.getElementById('taskDescription').value.trim();
+            const priority = document.getElementById('taskPriority').value;
+            const frequency = document.getElementById('taskFrequency').value;
+            const deadline = document.getElementById('taskDeadline').value;
+            const time = document.getElementById('taskTime').value;
+
+            if (!title || !deadline) {
+                showNotification('Please fill in required fields (Title and Deadline)', 'error');
+                return;
+            }
+
+            const task = {
+                id: Date.now().toString(),
+                title: title,
+                description: description,
+                priority: priority,
+                frequency: frequency,
+                deadline: deadline,
+                time: time,
+                completed: false,
+                createdAt: new Date().toISOString(),
+                completedAt: null,
+                nextDue: calculateNextDue(deadline, time, frequency)
+            };
+
+            tasks.push(task);
+            saveTasks();
+            updateStats();
+            updateDisplay();
+
+            // Reset form
+            document.getElementById('taskForm').reset();
+            setMinDate();
+
+            showNotification('Task added successfully!', 'success');
+        }
+
+        // Calculate next due date for recurring tasks
+        function calculateNextDue(deadline, time, frequency) {
+            const deadlineDate = new Date(deadline + (time ? `T${time}` : 'T23:59'));
+
+            if (frequency === 'once') {
+                return deadlineDate.toISOString();
+            }
+
+            const now = new Date();
+            let nextDue = new Date(deadlineDate);
+
+            // If the deadline has passed, calculate next occurrence
+            while (nextDue <= now) {
+                switch (frequency) {
+                    case 'daily':
+                        nextDue.setDate(nextDue.getDate() + 1);
+                        break;
+                    case 'weekly':
+                        nextDue.setDate(nextDue.getDate() + 7);
+                        break;
+                    case 'monthly':
+                        nextDue.setMonth(nextDue.getMonth() + 1);
+                        break;
+                }
+            }
+
+            return nextDue.toISOString();
+        }
+
+        // Toggle task completion
+        function toggleTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const wasCompleted = task.completed;
+            task.completed = !task.completed;
+            task.completedAt = task.completed ? new Date().toISOString() : null;
+
+            // For recurring tasks, create next instance when completed
+            if (task.completed && !wasCompleted && task.frequency !== 'once') {
+                const nextTask = createNextRecurrence(task);
+
+                // Enhanced feedback for different frequencies
+                if (task.frequency === 'daily') {
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    const tomorrowStr = tomorrow.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+                    showNotification(`✅ Daily task completed! Next occurrence: ${tomorrowStr}`, 'success');
+
+                    // Verify the next task was created
+                    setTimeout(() => {
+                        const nextTaskExists = tasks.find(t => t.id === nextTask.id);
+                        if (nextTaskExists) {
+                            console.log('✅ Daily recurrence verified: Next task created successfully');
+                        }
+                    }, 100);
+                } else {
+                    showNotification(`Task completed! Next ${task.frequency} occurrence scheduled 🎉`, 'success');
+                }
+            } else {
+                const message = task.completed ? 'Task completed! 🎉' : 'Task marked as pending';
+                showNotification(message, task.completed ? 'success' : 'info');
+            }
+
+            saveTasks();
+            updateStats();
+            updateDisplay();
+
+            // Check if all today's tasks are now completed
+            if (task.completed) {
+                checkForDayCompletion();
+            }
+        }
+
+        // Create next recurrence for recurring tasks
+        function createNextRecurrence(completedTask) {
+            const nextTask = {
+                ...completedTask,
+                id: Date.now().toString() + '_recur',
+                completed: false,
+                createdAt: new Date().toISOString(),
+                completedAt: null,
+                nextDue: calculateNextDue(completedTask.deadline, completedTask.time, completedTask.frequency)
+            };
+
+            // Update deadline for the next occurrence
+            const nextDueDate = new Date(nextTask.nextDue);
+            nextTask.deadline = nextDueDate.toISOString().split('T')[0];
+
+            tasks.push(nextTask);
+
+            // Log for debugging
+            console.log(`📅 Created next ${completedTask.frequency} task:`, {
+                title: nextTask.title,
+                originalDeadline: completedTask.deadline,
+                nextDeadline: nextTask.deadline,
+                nextDue: nextTask.nextDue
+            });
+
+            return nextTask; // Return the created task for verification
+        }
+
+        // Delete task
+        function deleteTask(taskId) {
+            if (confirm('Are you sure you want to delete this task?')) {
+                tasks = tasks.filter(t => t.id !== taskId);
+                saveTasks();
+                updateStats();
+                updateDisplay();
+                showNotification('Task deleted', 'info');
+            }
+        }
+
+        // Switch view
+        function switchView(view) {
+            currentView = view;
+
+            // Update view buttons
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-view="${view}"]`).classList.add('active');
+
+            // Update display based on view
+            if (view === 'today') {
+                setFilter('today');
+            } else {
+                updateDisplay();
+            }
+        }
+
+        // Set filter
+        function setFilter(filter) {
+            currentFilter = filter;
+
+            // Update filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-filter="${filter}"]`).classList.add('active');
+
+            updateDisplay();
+        }
+
+        // Update statistics
+        function updateStats() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay());
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+            const total = tasks.length;
+            const completed = tasks.filter(t => t.completed).length;
+            const overdue = tasks.filter(t => !t.completed && new Date(t.nextDue) < now).length;
+            const todayTasks = tasks.filter(t => {
+                const taskDate = new Date(t.nextDue);
+                return !t.completed && taskDate.toDateString() === today.toDateString();
+            }).length;
+            const weekTasks = tasks.filter(t => {
+                const taskDate = new Date(t.nextDue);
+                return !t.completed && taskDate >= weekStart && taskDate < new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+            }).length;
+            const monthTasks = tasks.filter(t => {
+                const taskDate = new Date(t.nextDue);
+                return !t.completed && taskDate >= monthStart && taskDate < new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1);
+            }).length;
+
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('completedTasks').textContent = completed;
+            document.getElementById('overdueTasks').textContent = overdue;
+            document.getElementById('todayTasks').textContent = todayTasks;
+            document.getElementById('weekTasks').textContent = weekTasks;
+            document.getElementById('monthTasks').textContent = monthTasks;
+        }
+
+        // Update display based on current view
+        function updateDisplay() {
+            if (currentView === 'calendar') {
+                updateCalendarView();
+            } else {
+                updateListView();
+            }
+        }
+
+        // Update list view
+        function updateListView() {
+            const listView = document.getElementById('listView');
+            const calendarView = document.getElementById('calendarView');
+
+            listView.style.display = 'block';
+            calendarView.style.display = 'none';
+
+            let filteredTasks = getFilteredTasks();
+
+            if (filteredTasks.length === 0) {
+                listView.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📝</div>
+                        <p>${getEmptyStateMessage()}</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Sort tasks with enhanced urgency-based sorting
+            filteredTasks.sort((a, b) => {
+                // Completed tasks go to bottom
+                if (a.completed !== b.completed) {
+                    return a.completed - b.completed;
+                }
+
+                const now = new Date();
+                const aDate = new Date(a.nextDue);
+                const bDate = new Date(b.nextDue);
+
+                // Calculate urgency scores for better sorting
+                const getUrgencyScore = (task) => {
+                    const taskDate = new Date(task.nextDue);
+                    const timeDiff = taskDate - now;
+                    const hoursDiff = timeDiff / (1000 * 60 * 60);
+
+                    let urgencyScore = 0;
+
+                    // Overdue tasks get highest priority
+                    if (hoursDiff < 0) {
+                        urgencyScore = 1000 + Math.abs(hoursDiff); // More overdue = higher score
+                    }
+                    // Due within 24 hours
+                    else if (hoursDiff <= 24) {
+                        urgencyScore = 500 + (24 - hoursDiff); // Closer to deadline = higher score
+                    }
+                    // Due within 3 days
+                    else if (hoursDiff <= 72) {
+                        urgencyScore = 200 + (72 - hoursDiff);
+                    }
+                    // Due within a week
+                    else if (hoursDiff <= 168) {
+                        urgencyScore = 100 + (168 - hoursDiff);
+                    }
+                    // Future tasks
+                    else {
+                        urgencyScore = Math.max(0, 100 - (hoursDiff / 24)); // Diminishing score for far future
+                    }
+
+                    // Priority multiplier
+                    const priorityMultiplier = { high: 1.5, medium: 1.2, low: 1.0 };
+                    urgencyScore *= priorityMultiplier[task.priority] || 1.0;
+
+                    return urgencyScore;
+                };
+
+                const aUrgency = getUrgencyScore(a);
+                const bUrgency = getUrgencyScore(b);
+
+                // Sort by urgency score (higher score = more urgent = comes first)
+                if (Math.abs(aUrgency - bUrgency) > 0.1) {
+                    return bUrgency - aUrgency;
+                }
+
+                // If urgency is similar, sort by exact due date
+                return aDate - bDate;
+            });
+
+            listView.innerHTML = filteredTasks.map(task => createTaskHTML(task)).join('');
+        }
+
+        // Get filtered tasks based on current filter
+        function getFilteredTasks() {
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay());
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+
+            switch (currentFilter) {
+                case 'today':
+                    return tasks.filter(t => {
+                        const taskDate = new Date(t.nextDue);
+                        // For today's view, only show incomplete tasks due today
+                        return !t.completed && taskDate.toDateString() === today.toDateString();
+                    });
+                case 'week':
+                    return tasks.filter(t => {
+                        const taskDate = new Date(t.nextDue);
+                        return !t.completed && taskDate >= weekStart && taskDate < new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
+                    });
+                case 'month':
+                    return tasks.filter(t => {
+                        const taskDate = new Date(t.nextDue);
+                        return !t.completed && taskDate >= monthStart && taskDate < new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 1);
+                    });
+                case 'overdue':
+                    return tasks.filter(t => !t.completed && new Date(t.nextDue) < now);
+                case 'completed':
+                    return tasks.filter(t => t.completed);
+                case 'high':
+                    return tasks.filter(t => t.priority === 'high' && !t.completed);
+                default:
+                    return tasks;
+            }
+        }
+
+        // Create task HTML
+        function createTaskHTML(task) {
+            const now = new Date();
+            const dueDate = new Date(task.nextDue);
+            const timeDiff = dueDate - now;
+            const hoursDiff = timeDiff / (1000 * 60 * 60);
+            const daysDiff = timeDiff / (1000 * 60 * 60 * 24);
+
+            // Enhanced urgency detection
+            const isOverdue = !task.completed && dueDate < now;
+            const isDueSoon = !task.completed && hoursDiff > 0 && hoursDiff <= 24;
+            const isDueThisWeek = !task.completed && daysDiff > 1 && daysDiff <= 7;
+
+            let taskClass = 'task-item';
+            let urgencyIndicator = '';
+            let urgencyMessage = '';
+
+            if (task.completed) {
+                taskClass += ' completed';
+            } else if (isOverdue) {
+                taskClass += ' overdue';
+                const hoursOverdue = Math.abs(hoursDiff);
+                if (hoursOverdue < 24) {
+                    urgencyIndicator = '🚨';
+                    urgencyMessage = `OVERDUE by ${Math.round(hoursOverdue)} hours`;
+                } else {
+                    urgencyIndicator = '🚨';
+                    urgencyMessage = `OVERDUE by ${Math.round(hoursOverdue / 24)} days`;
+                }
+            } else if (isDueSoon) {
+                taskClass += ' due-soon';
+                urgencyIndicator = '⏰';
+                if (hoursDiff < 1) {
+                    urgencyMessage = `Due in ${Math.round(hoursDiff * 60)} minutes`;
+                } else {
+                    urgencyMessage = `Due in ${Math.round(hoursDiff)} hours`;
+                }
+            } else if (isDueThisWeek) {
+                urgencyIndicator = '📅';
+                urgencyMessage = `Due in ${Math.round(daysDiff)} days`;
+            }
+
+            const dueDateDisplay = dueDate.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+            });
+            const dueTimeDisplay = task.time ? dueDate.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            }) : '';
+
+            // Enhanced urgency styling
+            const urgencyStyle = isOverdue ? 'color: #e74c3c; font-weight: bold; font-size: 0.9em; animation: pulse 2s infinite;' :
+                                isDueSoon ? 'color: #f39c12; font-weight: bold; font-size: 0.9em;' :
+                                isDueThisWeek ? 'color: #3498db; font-weight: 500; font-size: 0.85em;' : '';
+
+            return `
+                <div class="${taskClass}" data-task-id="${task.id}">
+                    <div class="task-header">
+                        <div class="task-title">
+                            ${urgencyIndicator ? `<span style="margin-right: 8px; font-size: 1.2em;">${urgencyIndicator}</span>` : ''}
+                            ${escapeHtml(task.title)}
+                        </div>
+                        <div class="task-badges">
+                            <div class="task-priority priority-${task.priority}">${task.priority}</div>
+                            <div class="task-frequency frequency-${task.frequency}">${task.frequency}</div>
+                        </div>
+                    </div>
+
+                    ${task.description ? `<div class="task-description">${linkifyText(task.description)}</div>` : ''}
+
+                    <div class="task-meta">
+                        <div class="task-dates">
+                            <div>Due: ${dueDateDisplay} ${dueTimeDisplay}</div>
+                            ${urgencyMessage ? `<div style="${urgencyStyle}">${urgencyMessage}</div>` : ''}
+                        </div>
+                        <div class="task-actions">
+                            <input type="checkbox" class="task-checkbox"
+                                   ${task.completed ? 'checked' : ''}
+                                   onchange="toggleTask('${task.id}')">
+                            <button class="btn btn-small btn-danger" onclick="deleteTask('${task.id}')">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Update calendar view
+        function updateCalendarView() {
+            const listView = document.getElementById('listView');
+            const calendarView = document.getElementById('calendarView');
+
+            listView.style.display = 'none';
+            calendarView.style.display = 'grid';
+
+            // Generate calendar for current month
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay();
+
+            let calendarHTML = '';
+
+            // Add day headers
+            const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            dayHeaders.forEach(day => {
+                calendarHTML += `<div class="calendar-day-header">${day}</div>`;
+            });
+
+            // Add empty cells for days before the first day of the month
+            for (let i = 0; i < startingDayOfWeek; i++) {
+                calendarHTML += '<div class="calendar-day"></div>';
+            }
+
+            // Add days of the month
+            for (let day = 1; day <= daysInMonth; day++) {
+                const currentDate = new Date(year, month, day);
+                const dayTasks = tasks.filter(task => {
+                    const taskDate = new Date(task.nextDue);
+                    return taskDate.toDateString() === currentDate.toDateString() && !task.completed;
+                });
+
+                let dayHTML = `<div class="calendar-day">
+                    <div class="calendar-day-header">${day}</div>`;
+
+                dayTasks.forEach(task => {
+                    dayHTML += `<div class="calendar-task" onclick="showTaskDetails('${task.id}')">${task.title}</div>`;
+                });
+
+                dayHTML += '</div>';
+                calendarHTML += dayHTML;
+            }
+
+            calendarView.innerHTML = calendarHTML;
+        }
+
+        // Show task details (for calendar view)
+        function showTaskDetails(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            alert(`Task: ${task.title}\nDescription: ${task.description || 'No description'}\nPriority: ${task.priority}\nFrequency: ${task.frequency}\nDue: ${new Date(task.nextDue).toLocaleString()}`);
+        }
+
+        // Get empty state message
+        function getEmptyStateMessage() {
+            switch (currentFilter) {
+                case 'today':
+                    return 'No tasks due today! Enjoy your free time! 🎉';
+                case 'week':
+                    return 'No tasks due this week. Great planning!';
+                case 'month':
+                    return 'No tasks due this month. You\'re all caught up!';
+                case 'overdue':
+                    return 'No overdue tasks! You\'re on top of everything! 🌟';
+                case 'completed':
+                    return 'No completed tasks yet. Start checking off some tasks!';
+                case 'high':
+                    return 'No high priority tasks. Everything is under control!';
+                default:
+                    return 'No tasks yet. Add your first task to get started!';
+            }
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Convert URLs in text to clickable links
+        function linkifyText(text) {
+            if (!text) return '';
+
+            // First escape HTML to prevent XSS
+            const escapedText = escapeHtml(text);
+
+            // URL regex pattern - matches http, https, ftp, and www URLs
+            const urlRegex = /(https?:\/\/[^\s<>"{}|\\^`\[\]]+|ftp:\/\/[^\s<>"{}|\\^`\[\]]+|www\.[^\s<>"{}|\\^`\[\]]+)/gi;
+
+            // Replace URLs with clickable links
+            return escapedText.replace(urlRegex, function(url) {
+                let href = url;
+                let displayUrl = url;
+
+                // Add protocol if missing for www URLs
+                if (url.toLowerCase().startsWith('www.')) {
+                    href = 'https://' + url;
+                }
+
+                // Truncate very long URLs for display
+                if (displayUrl.length > 50) {
+                    displayUrl = displayUrl.substring(0, 47) + '...';
+                }
+
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer"
+                           style="color: #667eea; text-decoration: underline; word-break: break-all;"
+                           title="${escapeHtml(url)}">${displayUrl}</a>`;
+            });
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 1000;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                max-width: 300px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            `;
+
+            const colors = {
+                success: '#28a745',
+                error: '#dc3545',
+                info: '#17a2b8',
+                warning: '#ffc107'
+            };
+            notification.style.background = colors[type] || colors.info;
+            notification.textContent = message;
+
+            document.body.appendChild(notification);
+
+            setTimeout(() => notification.style.transform = 'translateX(0)', 100);
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Data persistence
+        function saveTasks() {
+            localStorage.setItem('monthlyTaskManager_tasks', JSON.stringify(tasks));
+        }
+
+        function loadTasks() {
+            const saved = localStorage.getItem('monthlyTaskManager_tasks');
+            if (saved) {
+                tasks = JSON.parse(saved);
+            }
+        }
+
+        // Export tasks
+        function exportTasks() {
+            if (tasks.length === 0) {
+                showNotification('No tasks to export', 'warning');
+                return;
+            }
+
+            const dataStr = JSON.stringify(tasks, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `monthly_tasks_${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+
+            showNotification('Tasks exported successfully!', 'success');
+        }
+
+        // Import tasks
+        function importTasks() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (Array.isArray(importedData)) {
+                            tasks = [...tasks, ...importedData];
+                            saveTasks();
+                            updateStats();
+                            updateDisplay();
+                            showNotification(`Successfully imported ${importedData.length} tasks!`, 'success');
+                        } else {
+                            showNotification('Invalid file format', 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Error reading file: ' + error.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            input.click();
+        }
+
+        // Clear completed tasks
+        function clearCompleted() {
+            const completedCount = tasks.filter(t => t.completed).length;
+            if (completedCount === 0) {
+                showNotification('No completed tasks to clear', 'info');
+                return;
+            }
+
+            // Check if all today's tasks are completed before clearing
+            const today = new Date();
+            const todayStr = today.toDateString();
+            const todaysTasks = tasks.filter(t => {
+                const taskDate = new Date(t.nextDue);
+                return taskDate.toDateString() === todayStr;
+            });
+
+            const todaysCompletedTasks = todaysTasks.filter(t => t.completed);
+            const allTodaysTasksCompleted = todaysTasks.length > 0 && todaysCompletedTasks.length === todaysTasks.length;
+
+            if (confirm(`Are you sure you want to clear ${completedCount} completed task(s)?`)) {
+                tasks = tasks.filter(t => !t.completed);
+                saveTasks();
+                updateStats();
+                updateDisplay();
+
+                // Celebrate if all today's tasks were completed
+                if (allTodaysTasksCompleted && todaysTasks.length > 0) {
+                    setTimeout(() => {
+                        celebrateTaskCompletion();
+                    }, 500); // Small delay for better UX
+                    showNotification(`🎉 Amazing work Luong! All ${todaysTasks.length} tasks completed for today!`, 'success');
+                } else {
+                    showNotification(`${completedCount} completed task(s) cleared`, 'success');
+                }
+            }
+        }
+
+        // Clear all tasks
+        function clearAllTasks() {
+            if (tasks.length === 0) {
+                showNotification('No tasks to clear', 'info');
+                return;
+            }
+
+            if (confirm('Are you sure you want to delete ALL tasks? This cannot be undone!')) {
+                tasks = [];
+                saveTasks();
+                updateStats();
+                updateDisplay();
+                showNotification('All tasks cleared', 'success');
+            }
+        }
+
+        // Test daily recurrence (for debugging)
+        function testDailyRecurrence() {
+            const testTask = {
+                id: 'test_daily_' + Date.now(),
+                title: 'Test Daily Task',
+                description: 'This is a test daily task to verify recurrence works. Visit https://google.com for more info.',
+                priority: 'medium',
+                frequency: 'daily',
+                deadline: new Date().toISOString().split('T')[0],
+                time: '',
+                completed: false,
+                createdAt: new Date().toISOString(),
+                completedAt: null,
+                nextDue: new Date().toISOString()
+            };
+
+            tasks.push(testTask);
+            saveTasks();
+            updateStats();
+            updateDisplay();
+            showNotification('Test daily task created! Complete it to see recurrence in action.', 'info');
+        }
+
+        // Add keyboard shortcuts for testing
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+                e.preventDefault();
+                testDailyRecurrence();
+            }
+            // Test fireworks with Ctrl+Shift+F
+            if (e.ctrlKey && e.shiftKey && e.key === 'F') {
+                e.preventDefault();
+                celebrateTaskCompletion();
+                showNotification('🎆 Fireworks test! This is what happens when you complete all daily tasks!', 'success');
+            }
+        });
+
+        // Firework celebration functions
+        function createFirework(x, y, color) {
+            const firework = document.createElement('div');
+            firework.className = `firework ${color}`;
+            firework.style.left = x + 'px';
+            firework.style.top = y + 'px';
+
+            const overlay = document.querySelector('.firework-overlay') || createFireworkOverlay();
+            overlay.appendChild(firework);
+
+            // Remove firework after animation
+            setTimeout(() => {
+                if (firework.parentNode) {
+                    firework.parentNode.removeChild(firework);
+                }
+            }, 2000);
+        }
+
+        function createFireworkOverlay() {
+            const overlay = document.createElement('div');
+            overlay.className = 'firework-overlay';
+            document.body.appendChild(overlay);
+            return overlay;
+        }
+
+        function launchFireworks() {
+            const colors = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
+
+            // Launch multiple fireworks at random positions
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const x = Math.random() * windowWidth;
+                    const y = Math.random() * (windowHeight * 0.6) + (windowHeight * 0.1);
+                    const color = colors[Math.floor(Math.random() * colors.length)];
+                    createFirework(x, y, color);
+
+                    // Create burst effect - multiple fireworks from same point
+                    for (let j = 0; j < 5; j++) {
+                        setTimeout(() => {
+                            const offsetX = x + (Math.random() - 0.5) * 100;
+                            const offsetY = y + (Math.random() - 0.5) * 100;
+                            const burstColor = colors[Math.floor(Math.random() * colors.length)];
+                            createFirework(offsetX, offsetY, burstColor);
+                        }, j * 100);
+                    }
+                }, i * 200);
+            }
+        }
+
+        function showCelebrationMessage() {
+            const message = document.createElement('div');
+            message.className = 'celebration-message';
+            message.innerHTML = '🎉 Congratulations Luong! 🎉<br><span style="font-size: 0.6em;">All tasks completed for today!</span>';
+            document.body.appendChild(message);
+
+            // Remove message after animation
+            setTimeout(() => {
+                if (message.parentNode) {
+                    message.parentNode.removeChild(message);
+                }
+            }, 3000);
+        }
+
+        function celebrateTaskCompletion() {
+            // Show celebration message
+            showCelebrationMessage();
+
+            // Launch fireworks
+            launchFireworks();
+
+            // Clean up overlay after all animations
+            setTimeout(() => {
+                const overlay = document.querySelector('.firework-overlay');
+                if (overlay) {
+                    overlay.remove();
+                }
+            }, 5000);
+        }
+
+        // Check if all today's tasks are completed and celebrate
+        function checkForDayCompletion() {
+            const today = new Date();
+            const todayStr = today.toDateString();
+
+            // Get all tasks due today
+            const todaysTasks = tasks.filter(t => {
+                const taskDate = new Date(t.nextDue);
+                return taskDate.toDateString() === todayStr;
+            });
+
+            // Check if all today's tasks are completed
+            const completedTodaysTasks = todaysTasks.filter(t => t.completed);
+
+            if (todaysTasks.length > 0 && completedTodaysTasks.length === todaysTasks.length) {
+                // All today's tasks are completed! Celebrate!
+                setTimeout(() => {
+                    celebrateTaskCompletion();
+                }, 800); // Small delay for better UX
+
+                showNotification(`🎉 Incredible work Luong! All ${todaysTasks.length} tasks completed for today! 🎉`, 'success');
+            }
+        }
+    </script>
+</body>
+</html>

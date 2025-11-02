@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feature Test Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .demo-section {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 25px;
+            margin: 20px 0;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .feature-title {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .test-box {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left-color: #17a2b8;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 10px 10px 0;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        .demo-url {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .step {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+        .step h4 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+        code {
+            background: #f1f3f4;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Enhanced Task Manager - Feature Demo</h1>
+    
+    <div class="demo-section">
+        <div class="feature-title">
+            ✅ Feature 1: Daily Task Recurrence
+        </div>
+        
+        <div class="test-box success">
+            <h3>✅ CONFIRMED: Daily tasks DO recur automatically!</h3>
+            <p><strong>How it works:</strong></p>
+            <ul>
+                <li>When you complete a daily task, it immediately creates tomorrow's instance</li>
+                <li>The completed task disappears from "Today's Tasks" view</li>
+                <li>You get a notification showing the next occurrence date</li>
+                <li>The system logs the recurrence for verification</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h4>🧪 Test Steps:</h4>
+            <ol>
+                <li>Add a task with frequency "Daily" and today's deadline</li>
+                <li>Switch to "Today's Tasks" view</li>
+                <li>Complete the task by checking the checkbox</li>
+                <li>Watch it disappear and see the success notification</li>
+                <li>Check "All Tasks" to see the new tomorrow's task</li>
+            </ol>
+        </div>
+
+        <div class="test-box info">
+            <h4>🎯 Quick Test Shortcut:</h4>
+            <p>Press <code>Ctrl + Shift + T</code> in the task manager to create a test daily task instantly!</p>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <div class="feature-title">
+            🔗 Feature 2: Clickable URLs in Descriptions
+        </div>
+        
+        <div class="test-box success">
+            <h3>✅ NEW: URLs are now automatically clickable!</h3>
+            <p><strong>Supported URL formats:</strong></p>
+            <ul>
+                <li><code>https://example.com</code> - Full HTTPS URLs</li>
+                <li><code>http://example.com</code> - HTTP URLs</li>
+                <li><code>www.example.com</code> - WWW URLs (auto-adds https://)</li>
+                <li><code>ftp://files.example.com</code> - FTP URLs</li>
+            </ul>
+        </div>
+
+        <div class="step">
+            <h4>🧪 Test Steps:</h4>
+            <ol>
+                <li>Create a new task with any title</li>
+                <li>In the description, add URLs like:</li>
+                <div class="demo-url">
+                    <strong>Example description:</strong><br>
+                    "Check the project status at https://github.com/myproject and review docs at www.example.com/docs"
+                </div>
+                <li>Save the task and view it in the task list</li>
+                <li>Click on any URL - it opens in a new tab!</li>
+            </ol>
+        </div>
+
+        <div class="test-box info">
+            <h4>🎨 URL Features:</h4>
+            <ul>
+                <li><strong>Auto-detection:</strong> No need to format - just paste URLs</li>
+                <li><strong>New tab:</strong> Links open in new tabs (won't lose your task list)</li>
+                <li><strong>Security:</strong> Uses <code>rel="noopener noreferrer"</code> for safety</li>
+                <li><strong>Visual feedback:</strong> Hover effects and visited link colors</li>
+                <li><strong>Long URL handling:</strong> Very long URLs are truncated for display</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <div class="feature-title">
+            🔧 Technical Improvements
+        </div>
+        
+        <div class="test-box">
+            <h4>Enhanced Daily Recurrence:</h4>
+            <ul>
+                <li>Better user feedback with specific next occurrence dates</li>
+                <li>Console logging for debugging and verification</li>
+                <li>Improved error handling and task validation</li>
+            </ul>
+        </div>
+
+        <div class="test-box">
+            <h4>Smart URL Processing:</h4>
+            <ul>
+                <li>XSS protection - all text is properly escaped before URL conversion</li>
+                <li>Regex-based URL detection for accuracy</li>
+                <li>Protocol auto-completion for www URLs</li>
+                <li>Word-break handling for long URLs</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <div class="feature-title">
+            🎯 Ready to Test!
+        </div>
+        
+        <a href="monthly-task-manager.html" class="btn">🚀 Open Enhanced Task Manager</a>
+        
+        <div style="margin-top: 20px;">
+            <h4>Sample task to test both features:</h4>
+            <div class="demo-url">
+                <strong>Title:</strong> Daily Website Check<br>
+                <strong>Description:</strong> Check website analytics at https://analytics.google.com and review performance at www.gtmetrix.com<br>
+                <strong>Frequency:</strong> Daily<br>
+                <strong>Deadline:</strong> Today<br>
+                <strong>Priority:</strong> Medium
+            </div>
+            <p>This task will test both URL clicking and daily recurrence!</p>
+        </div>
+    </div>
+
+    <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 15px; margin-top: 30px;">
+        <h3>💡 Pro Tips:</h3>
+        <ul>
+            <li>Use <code>Ctrl + Shift + T</code> for quick daily task testing</li>
+            <li>Check browser console (F12) to see recurrence logs</li>
+            <li>URLs work in any task description - paste freely!</li>
+            <li>Daily tasks will always appear in tomorrow's "Today's Tasks" view</li>
+        </ul>
+    </div>
+</body>
+</html>

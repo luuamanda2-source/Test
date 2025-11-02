@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager Functionality Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-title {
+            color: #667eea;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        .feature {
+            background: #e8f4fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+        }
+        .feature h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .steps {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .steps ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .expected {
+            background: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid #28a745;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 10px 10px 0;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Monthly Task Manager - Functionality Test Guide</h1>
+    
+    <div class="test-section">
+        <div class="test-title">✅ Test 1: Daily Task Recurrence</div>
+        <div class="feature">
+            <h3>Feature: Daily tasks should automatically create next day's instance when completed</h3>
+            
+            <div class="steps">
+                <strong>Test Steps:</strong>
+                <ol>
+                    <li>Open the Monthly Task Manager</li>
+                    <li>Add a new task with:
+                        <ul>
+                            <li>Title: "Daily Exercise"</li>
+                            <li>Frequency: "Daily"</li>
+                            <li>Deadline: Today's date</li>
+                            <li>Priority: Any</li>
+                        </ul>
+                    </li>
+                    <li>Click "Today's Tasks" view</li>
+                    <li>Check the checkbox to complete the task</li>
+                </ol>
+            </div>
+            
+            <div class="expected">
+                <strong>Expected Results:</strong>
+                <ul>
+                    <li>✅ Task disappears from "Today's Tasks" view immediately</li>
+                    <li>✅ Notification shows: "Daily task completed! Next occurrence scheduled for tomorrow 📅"</li>
+                    <li>✅ A new identical task is created with tomorrow's date</li>
+                    <li>✅ Original task is marked as completed (visible in "Completed" filter)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">📅 Test 2: Auto-Arrange by Deadline Priority</div>
+        <div class="feature">
+            <h3>Feature: Tasks should be automatically sorted by urgency and deadline proximity</h3>
+            
+            <div class="steps">
+                <strong>Test Steps:</strong>
+                <ol>
+                    <li>Add multiple tasks with different deadlines:
+                        <ul>
+                            <li>Task A: Due tomorrow (High priority)</li>
+                            <li>Task B: Due in 3 days (Medium priority)</li>
+                            <li>Task C: Due yesterday (Low priority) - This will be overdue</li>
+                            <li>Task D: Due in 1 week (High priority)</li>
+                        </ul>
+                    </li>
+                    <li>View the task list in "All Tasks" filter</li>
+                </ol>
+            </div>
+            
+            <div class="expected">
+                <strong>Expected Results (Top to Bottom Order):</strong>
+                <ol>
+                    <li>🚨 <strong>Task C (Overdue)</strong> - Red border, pulsing animation, "OVERDUE" message</li>
+                    <li>⏰ <strong>Task A (Due Tomorrow)</strong> - Orange border, "Due in X hours" message</li>
+                    <li>📅 <strong>Task B (Due in 3 days)</strong> - Blue message "Due in 3 days"</li>
+                    <li><strong>Task D (Due in 1 week)</strong> - Normal appearance</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🎨 Test 3: Visual Urgency Indicators</div>
+        <div class="feature">
+            <h3>Feature: Tasks should have clear visual indicators based on urgency</h3>
+            
+            <div class="steps">
+                <strong>Visual Indicators to Check:</strong>
+                <ul>
+                    <li><strong>Overdue Tasks:</strong> 🚨 Red border, pulsing text, "OVERDUE by X hours/days"</li>
+                    <li><strong>Due Soon (within 24h):</strong> ⏰ Orange border, "Due in X hours"</li>
+                    <li><strong>Due This Week:</strong> 📅 Blue text, "Due in X days"</li>
+                    <li><strong>Priority Colors:</strong> High (red), Medium (orange), Low (green)</li>
+                    <li><strong>Frequency Badges:</strong> Different colors for Daily, Weekly, Monthly, Once</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <div class="test-title">🔄 Test 4: Recurring Task Behavior</div>
+        <div class="feature">
+            <h3>Feature: Different frequencies should create appropriate next occurrences</h3>
+            
+            <div class="steps">
+                <strong>Test Different Frequencies:</strong>
+                <ul>
+                    <li><strong>Daily:</strong> Next occurrence tomorrow</li>
+                    <li><strong>Weekly:</strong> Next occurrence same day next week</li>
+                    <li><strong>Monthly:</strong> Next occurrence same date next month</li>
+                    <li><strong>Once:</strong> No next occurrence (task just completes)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <a href="monthly-task-manager.html" class="btn">🚀 Open Task Manager</a>
+    <a href="daily-task-tracker.html" class="btn">📋 Open Original Daily Tracker</a>
+    
+    <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 10px; border-left: 4px solid #ffc107;">
+        <h3>💡 Pro Tips for Testing:</h3>
+        <ul>
+            <li>Use browser's developer tools to change system date for testing overdue scenarios</li>
+            <li>Check localStorage to see how tasks are stored and managed</li>
+            <li>Test the export/import functionality to ensure data persistence</li>
+            <li>Try different view modes (List, Calendar, Today's Tasks)</li>
+            <li>Test on mobile devices for responsive design</li>
+        </ul>
+    </div>
+</body>
+</html>

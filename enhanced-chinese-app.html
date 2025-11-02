@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Chinese Learning App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .nav-tab.active {
+            background: white;
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+        }
+
+        .content-area {
+            background: white;
+            border-radius: 0 0 10px 10px;
+            padding: 30px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Vocabulary Tab Styles */
+        .vocab-section {
+            margin-bottom: 30px;
+        }
+
+        .vocab-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .chinese-text {
+            font-size: 1.4em;
+            line-height: 2;
+            margin: 20px 0;
+        }
+
+        .chinese-char {
+            position: relative;
+            display: inline-block;
+            margin: 0 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chinese-char:hover {
+            background-color: #f0f8ff;
+            border-radius: 4px;
+        }
+
+        .pinyin {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7em;
+            color: #667eea;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .tone-1 { color: #e74c3c; }
+        .tone-2 { color: #f39c12; }
+        .tone-3 { color: #27ae60; }
+        .tone-4 { color: #3498db; }
+        .tone-0 { color: #95a5a6; }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .exercise-area {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .blank-input {
+            display: inline-block;
+            width: 80px;
+            padding: 8px;
+            margin: 0 4px;
+            border: 2px solid #dee2e6;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .blank-input.correct {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+
+        .blank-input.incorrect {
+            border-color: #dc3545;
+            background-color: #f8d7da;
+        }
+
+        .result-message {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .result-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .result-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Progress Tab Styles */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        /* Flashcard Styles */
+        .flashcard {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            width: 400px;
+            height: 250px;
+            margin: 20px auto;
+            cursor: pointer;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .flashcard-back {
+            transform: rotateY(180deg);
+            background: #f8f9fa;
+        }
+
+        .flashcard-chinese {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .flashcard-pinyin {
+            font-size: 1.2em;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .flashcard-meaning {
+            font-size: 1.1em;
+            color: #555;
+            text-align: center;
+        }
+
+        .word-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .word-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .word-chinese {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .word-pinyin {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .word-meaning {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .hsk-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🇨🇳 Enhanced Chinese Learning</h1>
+            <p>Master Pinyin, Vocabulary, and Grammar with Interactive Exercises</p>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="switchTab('vocabulary')">📚 Vocabulary</button>
+            <button class="nav-tab" onclick="switchTab('pinyin')">🔤 Pinyin Practice</button>
+            <button class="nav-tab" onclick="switchTab('flashcards')">🃏 Flashcards</button>
+            <button class="nav-tab" onclick="switchTab('progress')">📊 Progress</button>
+        </div>
+
+        <div class="content-area">
+            <!-- Vocabulary Tab -->
+            <div id="vocabulary" class="tab-content active">
+                <div class="vocab-section">
+                    <h3>📝 Text Input & Analysis</h3>
+                    <div class="input-group">
+                        <label for="chineseText">Chinese Text:</label>
+                        <textarea id="chineseText" rows="4" placeholder="Enter Chinese text here...">你有没有羡慕过别人。我曾经特别羡慕一个女同学。她不仅漂亮还总是考第一，简直完美。</textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="targetWords">Target Words (comma-separated):</label>
+                        <input type="text" id="targetWords" placeholder="羡慕, 曾经, 简直" value="羡慕, 曾经, 简直">
+                    </div>
+                    <button class="btn" onclick="analyzeText()">🔍 Analyze & Generate Exercise</button>
+                    <button class="btn" onclick="speakText()">🔊 Listen to Text</button>
+                </div>
+
+                <div class="vocab-section">
+                    <h3>📖 Text with Pinyin</h3>
+                    <div id="textWithPinyin" class="chinese-text"></div>
+                </div>
+
+                <div class="vocab-section">
+                    <h3>✏️ Fill-in-the-Blank Exercise</h3>
+                    <div id="exerciseArea" class="exercise-area"></div>
+                    <button class="btn" id="checkAnswers" onclick="checkAnswers()" disabled>✅ Check Answers</button>
+                    <div id="resultMessage"></div>
+                </div>
+            </div>
+
+            <!-- Pinyin Practice Tab -->
+            <div id="pinyin" class="tab-content">
+                <div class="vocab-section">
+                    <h3>🎯 Pinyin Recognition Practice</h3>
+                    <p>Click on characters to practice pinyin recognition and tone identification.</p>
+                    <div id="pinyinPracticeArea"></div>
+                    <button class="btn" onclick="generatePinyinPractice()">🔄 New Practice Set</button>
+                </div>
+            </div>
+
+            <!-- Flashcards Tab -->
+            <div id="flashcards" class="tab-content">
+                <div class="vocab-section">
+                    <h3>🃏 Interactive Flashcards</h3>
+                    <p>Click the card to flip and reveal the meaning. Use spaced repetition for optimal learning.</p>
+                    <div id="flashcardContainer">
+                        <div class="flashcard" onclick="flipCard(this)">
+                            <div class="flashcard-front">
+                                <div class="flashcard-chinese">羡慕</div>
+                                <div class="flashcard-pinyin">xiàn mù</div>
+                            </div>
+                            <div class="flashcard-back">
+                                <div class="flashcard-meaning">to envy; to admire</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn" onclick="previousCard()">⬅️ Previous</button>
+                        <button class="btn" onclick="nextCard()">➡️ Next</button>
+                        <button class="btn" onclick="shuffleCards()">🔀 Shuffle</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Tab -->
+            <div id="progress" class="tab-content">
+                <div class="vocab-section">
+                    <h3>📊 Learning Statistics</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number" id="totalWords">0</div>
+                            <div class="stat-label">Words Learned</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="accuracy">0%</div>
+                            <div class="stat-label">Overall Accuracy</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="streak">0</div>
+                            <div class="stat-label">Day Streak</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="sessionsToday">0</div>
+                            <div class="stat-label">Sessions Today</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="vocab-section">
+                    <h3>📚 Vocabulary Bank</h3>
+                    <div style="margin-bottom: 20px;">
+                        <button class="btn" onclick="exportVocabulary()">📤 Export Vocabulary</button>
+                        <button class="btn" onclick="importVocabulary()">📥 Import Vocabulary</button>
+                        <button class="btn" onclick="clearAllData()" style="background: #dc3545;">🗑️ Clear All Data</button>
+                    </div>
+                    <div id="vocabularyBank" class="word-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentExercise = null;
+        let vocabularyBank = [];
+        let currentCardIndex = 0;
+        let userStats = {
+            totalWords: 0,
+            correctAnswers: 0,
+            totalAnswers: 0,
+            streak: 0,
+            sessionsToday: 0,
+            lastSessionDate: null
+        };
+
+        // Expanded pinyin data with tones
+        const pinyinData = {
+            '你': 'nǐ', '有': 'yǒu', '没': 'méi', '羡': 'xiàn', '慕': 'mù', '过': 'guò', '别': 'bié', '人': 'rén',
+            '我': 'wǒ', '曾': 'céng', '经': 'jīng', '特': 'tè', '一': 'yī', '个': 'gè', '女': 'nǚ', '同': 'tóng',
+            '学': 'xué', '她': 'tā', '不': 'bù', '仅': 'jǐn', '漂': 'piào', '亮': 'liàng', '还': 'hái', '总': 'zǒng',
+            '是': 'shì', '考': 'kǎo', '第': 'dì', '简': 'jiǎn', '直': 'zhí', '完': 'wán', '美': 'měi', '也': 'yě',
+            '偷': 'tōu', '发': 'fā', '现': 'xiàn', '原': 'yuán', '来': 'lái', '直': 'zhí', '到': 'dào', '天': 'tiān',
+            '们': 'men', '起': 'qǐ', '排': 'pái', '话': 'huà', '剧': 'jù', '才': 'cái', '和': 'hé', '的': 'de',
+            '在': 'zài', '了': 'le', '上': 'shàng', '下': 'xià', '中': 'zhōng', '国': 'guó', '文': 'wén', '字': 'zì',
+            '语': 'yǔ', '言': 'yán', '好': 'hǎo', '很': 'hěn', '多': 'duō', '少': 'shǎo', '大': 'dà', '小': 'xiǎo',
+            '高': 'gāo', '低': 'dī', '长': 'cháng', '短': 'duǎn', '新': 'xīn', '旧': 'jiù', '快': 'kuài', '慢': 'màn',
+            '热': 'rè', '冷': 'lěng', '明': 'míng', '暗': 'àn', '白': 'bái', '黑': 'hēi', '红': 'hóng', '绿': 'lǜ',
+            '蓝': 'lán', '黄': 'huáng', '紫': 'zǐ', '粉': 'fěn', '灰': 'huī', '棕': 'zōng', '橙': 'chéng',
+            '吃': 'chī', '喝': 'hē', '睡': 'shuì', '走': 'zǒu', '跑': 'pǎo', '看': 'kàn', '听': 'tīng', '说': 'shuō',
+            '读': 'dú', '写': 'xiě', '买': 'mǎi', '卖': 'mài', '做': 'zuò', '工': 'gōng', '作': 'zuò', '家': 'jiā',
+            '爸': 'bà', '妈': 'mā', '儿': 'ér', '子': 'zi', '女': 'nǚ', '老': 'lǎo', '师': 'shī', '朋': 'péng',
+            '友': 'yǒu', '同': 'tóng', '事': 'shì', '医': 'yī', '生': 'shēng', '护': 'hù', '士': 'shì'
+        };
+
+        // Extended word meanings for better vocabulary support
+        const wordMeanings = {
+            '羡慕': 'to envy; to admire',
+            '曾经': 'once; formerly; previously',
+            '简直': 'simply; at all; practically',
+            '漂亮': 'beautiful; pretty',
+            '完美': 'perfect; flawless',
+            '同学': 'classmate; schoolmate',
+            '特别': 'special; especially',
+            '总是': 'always; invariably',
+            '不仅': 'not only',
+            '第一': 'first; number one',
+            '发现': 'to discover; to find',
+            '原来': 'originally; it turns out',
+            '偷偷': 'secretly; stealthily',
+            '话剧': 'stage play; drama',
+            '中国': 'China',
+            '朋友': 'friend',
+            '老师': 'teacher',
+            '医生': 'doctor',
+            '工作': 'work; job',
+            '家人': 'family members'
+        };
+
+        // HSK level classifications
+        const hskClassification = {
+            '我': 'HSK 1', '你': 'HSK 1', '他': 'HSK 1', '她': 'HSK 1', '好': 'HSK 1', '是': 'HSK 1',
+            '的': 'HSK 1', '了': 'HSK 1', '在': 'HSK 1', '有': 'HSK 1', '不': 'HSK 1', '人': 'HSK 1',
+            '一': 'HSK 1', '中': 'HSK 1', '大': 'HSK 1', '上': 'HSK 1', '个': 'HSK 1', '国': 'HSK 1',
+            '和': 'HSK 1', '多': 'HSK 1', '说': 'HSK 1', '就': 'HSK 1', '出': 'HSK 1', '要': 'HSK 1',
+            '还': 'HSK 2', '没': 'HSK 2', '看': 'HSK 2', '现': 'HSK 2', '听': 'HSK 2', '白': 'HSK 2',
+            '别': 'HSK 2', '长': 'HSK 2', '从': 'HSK 2', '到': 'HSK 2', '第': 'HSK 2', '高': 'HSK 2',
+            '曾经': 'HSK 3', '特别': 'HSK 3', '漂亮': 'HSK 3', '发现': 'HSK 3', '原来': 'HSK 3',
+            '羡慕': 'HSK 4', '简直': 'HSK 4', '完美': 'HSK 4', '不仅': 'HSK 4', '总是': 'HSK 4'
+        };
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserStats();
+            updateStatsDisplay();
+            loadVocabularyBank();
+        });
+
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked nav tab
+            event.target.classList.add('active');
+        }
+
+        // Text analysis and pinyin generation
+        function analyzeText() {
+            const text = document.getElementById('chineseText').value.trim();
+            const targetWordsInput = document.getElementById('targetWords').value.trim();
+
+            if (!text) {
+                alert('Please enter Chinese text');
+                return;
+            }
+
+            // Generate text with pinyin
+            generateTextWithPinyin(text);
+
+            // Generate exercise if target words are provided
+            if (targetWordsInput) {
+                const targetWords = targetWordsInput.split(',').map(word => word.trim()).filter(word => word);
+                generateExercise(text, targetWords);
+
+                // Add words to vocabulary bank
+                targetWords.forEach(word => addToVocabularyBank(word));
+            }
+        }
+
+        function generateTextWithPinyin(text) {
+            const container = document.getElementById('textWithPinyin');
+            container.innerHTML = '';
+
+            for (let char of text) {
+                if (pinyinData[char]) {
+                    const charSpan = document.createElement('span');
+                    charSpan.className = 'chinese-char';
+                    charSpan.textContent = char;
+
+                    const pinyinSpan = document.createElement('span');
+                    pinyinSpan.className = 'pinyin ' + getToneClass(pinyinData[char]);
+                    pinyinSpan.textContent = pinyinData[char];
+
+                    charSpan.appendChild(pinyinSpan);
+                    container.appendChild(charSpan);
+                } else {
+                    const textNode = document.createTextNode(char);
+                    container.appendChild(textNode);
+                }
+            }
+        }
+
+        function getToneClass(pinyin) {
+            // Determine tone based on pinyin marks
+            if (pinyin.includes('ā') || pinyin.includes('ē') || pinyin.includes('ī') || pinyin.includes('ō') || pinyin.includes('ū') || pinyin.includes('ǖ')) return 'tone-1';
+            if (pinyin.includes('á') || pinyin.includes('é') || pinyin.includes('í') || pinyin.includes('ó') || pinyin.includes('ú') || pinyin.includes('ǘ')) return 'tone-2';
+            if (pinyin.includes('ǎ') || pinyin.includes('ě') || pinyin.includes('ǐ') || pinyin.includes('ǒ') || pinyin.includes('ǔ') || pinyin.includes('ǚ')) return 'tone-3';
+            if (pinyin.includes('à') || pinyin.includes('è') || pinyin.includes('ì') || pinyin.includes('ò') || pinyin.includes('ù') || pinyin.includes('ǜ')) return 'tone-4';
+            return 'tone-0'; // neutral tone
+        }
+
+        function generateExercise(text, targetWords) {
+            const exerciseArea = document.getElementById('exerciseArea');
+            let exerciseText = text;
+            let blankIndex = 0;
+
+            currentExercise = {
+                originalText: text,
+                targetWords: targetWords,
+                blanks: []
+            };
+
+            // Replace target words with input fields
+            targetWords.forEach(word => {
+                const regex = new RegExp(word, 'g');
+                exerciseText = exerciseText.replace(regex, () => {
+                    const blankId = `blank_${blankIndex}`;
+                    currentExercise.blanks.push({
+                        id: blankId,
+                        correctAnswer: word,
+                        index: blankIndex
+                    });
+                    blankIndex++;
+                    return `<input type="text" class="blank-input" id="${blankId}" data-answer="${word}">`;
+                });
+            });
+
+            exerciseArea.innerHTML = exerciseText;
+            document.getElementById('checkAnswers').disabled = false;
+            document.getElementById('resultMessage').innerHTML = '';
+        }
+
+        function checkAnswers() {
+            if (!currentExercise) return;
+
+            let correctCount = 0;
+            let totalCount = currentExercise.blanks.length;
+
+            currentExercise.blanks.forEach(blank => {
+                const input = document.getElementById(blank.id);
+                const userAnswer = input.value.trim();
+                const correctAnswer = blank.correctAnswer;
+
+                if (userAnswer === correctAnswer) {
+                    input.classList.remove('incorrect');
+                    input.classList.add('correct');
+                    correctCount++;
+                } else {
+                    input.classList.remove('correct');
+                    input.classList.add('incorrect');
+                }
+            });
+
+            // Update user statistics
+            userStats.totalAnswers += totalCount;
+            userStats.correctAnswers += correctCount;
+            updateUserStats();
+
+            // Display result
+            const resultMessage = document.getElementById('resultMessage');
+            const accuracy = Math.round((correctCount / totalCount) * 100);
+
+            if (correctCount === totalCount) {
+                resultMessage.className = 'result-message result-success';
+                resultMessage.innerHTML = `🎉 Perfect! You got all ${totalCount} answers correct!`;
+            } else {
+                resultMessage.className = 'result-message result-error';
+                resultMessage.innerHTML = `📝 You got ${correctCount}/${totalCount} correct (${accuracy}%). Keep practicing!`;
+            }
+        }
+
+        // Vocabulary bank management
+        function addToVocabularyBank(word) {
+            if (!vocabularyBank.find(item => item.chinese === word)) {
+                const wordData = {
+                    chinese: word,
+                    pinyin: getPinyinForWord(word),
+                    meaning: getMeaningForWord(word),
+                    hskLevel: getHSKLevel(word),
+                    dateAdded: new Date().toISOString(),
+                    reviewCount: 0,
+                    correctCount: 0
+                };
+
+                vocabularyBank.push(wordData);
+                saveVocabularyBank();
+                updateVocabularyDisplay();
+                userStats.totalWords = vocabularyBank.length;
+                updateStatsDisplay();
+            }
+        }
+
+        function getPinyinForWord(word) {
+            return word.split('').map(char => pinyinData[char] || char).join(' ');
+        }
+
+        function getMeaningForWord(word) {
+            return wordMeanings[word] || 'meaning not available';
+        }
+
+        function getHSKLevel(word) {
+            return hskClassification[word] || 'HSK ?';
+        }
+
+        // Flashcard functionality
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+        }
+
+        function nextCard() {
+            if (vocabularyBank.length === 0) {
+                alert('No vocabulary words available. Add some words first!');
+                return;
+            }
+
+            currentCardIndex = (currentCardIndex + 1) % vocabularyBank.length;
+            updateFlashcard();
+        }
+
+        function previousCard() {
+            if (vocabularyBank.length === 0) {
+                alert('No vocabulary words available. Add some words first!');
+                return;
+            }
+
+            currentCardIndex = currentCardIndex === 0 ? vocabularyBank.length - 1 : currentCardIndex - 1;
+            updateFlashcard();
+        }
+
+        function shuffleCards() {
+            if (vocabularyBank.length === 0) {
+                alert('No vocabulary words available. Add some words first!');
+                return;
+            }
+
+            // Fisher-Yates shuffle
+            for (let i = vocabularyBank.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [vocabularyBank[i], vocabularyBank[j]] = [vocabularyBank[j], vocabularyBank[i]];
+            }
+
+            currentCardIndex = 0;
+            updateFlashcard();
+            saveVocabularyBank();
+        }
+
+        function updateFlashcard() {
+            if (vocabularyBank.length === 0) return;
+
+            const word = vocabularyBank[currentCardIndex];
+            const flashcard = document.querySelector('.flashcard');
+
+            flashcard.classList.remove('flipped');
+
+            setTimeout(() => {
+                flashcard.querySelector('.flashcard-chinese').textContent = word.chinese;
+                flashcard.querySelector('.flashcard-pinyin').textContent = word.pinyin;
+                flashcard.querySelector('.flashcard-meaning').textContent = word.meaning;
+            }, 150);
+        }
+
+        // Pinyin practice
+        function generatePinyinPractice() {
+            const practiceArea = document.getElementById('pinyinPracticeArea');
+            const practiceWords = vocabularyBank.slice(0, 5); // Take first 5 words
+
+            if (practiceWords.length === 0) {
+                practiceArea.innerHTML = '<p>Add some vocabulary words first to practice pinyin!</p>';
+                return;
+            }
+
+            let practiceHTML = '<div class="chinese-text">';
+            practiceWords.forEach(word => {
+                practiceHTML += `<span class="chinese-char" onclick="showPinyin(this, '${word.pinyin}')">${word.chinese}</span> `;
+            });
+            practiceHTML += '</div>';
+
+            practiceArea.innerHTML = practiceHTML;
+        }
+
+        function showPinyin(element, pinyin) {
+            // Remove any existing pinyin
+            const existingPinyin = element.querySelector('.pinyin');
+            if (existingPinyin) {
+                existingPinyin.remove();
+                return;
+            }
+
+            // Add pinyin
+            const pinyinSpan = document.createElement('span');
+            pinyinSpan.className = 'pinyin';
+            pinyinSpan.textContent = pinyin;
+            element.appendChild(pinyinSpan);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                if (pinyinSpan.parentNode) {
+                    pinyinSpan.remove();
+                }
+            }, 3000);
+        }
+
+        // Data persistence
+        function saveVocabularyBank() {
+            localStorage.setItem('chineseApp_vocabulary', JSON.stringify(vocabularyBank));
+        }
+
+        function loadVocabularyBank() {
+            const saved = localStorage.getItem('chineseApp_vocabulary');
+            if (saved) {
+                vocabularyBank = JSON.parse(saved);
+                updateVocabularyDisplay();
+                updateFlashcard();
+            }
+        }
+
+        function saveUserStats() {
+            localStorage.setItem('chineseApp_stats', JSON.stringify(userStats));
+        }
+
+        function loadUserStats() {
+            const saved = localStorage.getItem('chineseApp_stats');
+            if (saved) {
+                userStats = { ...userStats, ...JSON.parse(saved) };
+            }
+
+            // Update daily streak
+            const today = new Date().toDateString();
+            if (userStats.lastSessionDate !== today) {
+                if (userStats.lastSessionDate === new Date(Date.now() - 86400000).toDateString()) {
+                    // Yesterday - continue streak
+                    userStats.streak++;
+                } else if (userStats.lastSessionDate !== today) {
+                    // Reset streak if more than one day gap
+                    userStats.streak = 1;
+                }
+                userStats.lastSessionDate = today;
+                userStats.sessionsToday = 1;
+            } else {
+                userStats.sessionsToday++;
+            }
+
+            saveUserStats();
+        }
+
+        function updateUserStats() {
+            saveUserStats();
+            updateStatsDisplay();
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('totalWords').textContent = userStats.totalWords;
+            document.getElementById('accuracy').textContent =
+                userStats.totalAnswers > 0 ?
+                Math.round((userStats.correctAnswers / userStats.totalAnswers) * 100) + '%' : '0%';
+            document.getElementById('streak').textContent = userStats.streak;
+            document.getElementById('sessionsToday').textContent = userStats.sessionsToday;
+        }
+
+        function updateVocabularyDisplay() {
+            const container = document.getElementById('vocabularyBank');
+
+            if (vocabularyBank.length === 0) {
+                container.innerHTML = '<p>No vocabulary words yet. Add some words by creating exercises!</p>';
+                return;
+            }
+
+            container.innerHTML = vocabularyBank.map(word => `
+                <div class="word-item">
+                    <div class="word-chinese">${word.chinese}<span class="hsk-badge">${word.hskLevel}</span></div>
+                    <div class="word-pinyin">${word.pinyin}</div>
+                    <div class="word-meaning">${word.meaning}</div>
+                    <button class="btn" style="margin-top: 10px; padding: 5px 10px; font-size: 12px;" onclick="speakWord('${word.chinese}')">🔊 Listen</button>
+                </div>
+            `).join('');
+        }
+
+        // Audio functionality
+        function speakText() {
+            const text = document.getElementById('chineseText').value.trim();
+            if (!text) {
+                alert('Please enter some Chinese text first');
+                return;
+            }
+            speakChinese(text);
+        }
+
+        function speakWord(word) {
+            speakChinese(word);
+        }
+
+        function speakChinese(text) {
+            if ('speechSynthesis' in window) {
+                // Cancel any ongoing speech
+                speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'zh-CN'; // Chinese (Simplified)
+                utterance.rate = 0.8; // Slightly slower for learning
+                utterance.pitch = 1;
+
+                speechSynthesis.speak(utterance);
+            } else {
+                alert('Speech synthesis not supported in your browser');
+            }
+        }
+
+        // Additional utility functions
+        function exportVocabulary() {
+            if (vocabularyBank.length === 0) {
+                alert('No vocabulary to export');
+                return;
+            }
+
+            const dataStr = JSON.stringify(vocabularyBank, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = 'chinese_vocabulary.json';
+            link.click();
+        }
+
+        function importVocabulary() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (Array.isArray(importedData)) {
+                            vocabularyBank = [...vocabularyBank, ...importedData];
+                            saveVocabularyBank();
+                            updateVocabularyDisplay();
+                            updateFlashcard();
+                            userStats.totalWords = vocabularyBank.length;
+                            updateStatsDisplay();
+                            alert(`Successfully imported ${importedData.length} words!`);
+                        } else {
+                            alert('Invalid file format');
+                        }
+                    } catch (error) {
+                        alert('Error reading file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            input.click();
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all vocabulary and progress data? This cannot be undone.')) {
+                localStorage.removeItem('chineseApp_vocabulary');
+                localStorage.removeItem('chineseApp_stats');
+                vocabularyBank = [];
+                userStats = {
+                    totalWords: 0,
+                    correctAnswers: 0,
+                    totalAnswers: 0,
+                    streak: 0,
+                    sessionsToday: 0,
+                    lastSessionDate: null
+                };
+                updateVocabularyDisplay();
+                updateStatsDisplay();
+                updateFlashcard();
+                alert('All data cleared successfully');
+            }
+        }
+    </script>
+</body>
+</html>
