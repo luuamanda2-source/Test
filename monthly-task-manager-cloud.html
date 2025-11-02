@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luong's Tracker Task Manager - Cloud Sync</title>
+    
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Authentication Modal */
+        .auth-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .auth-modal.hidden {
+            display: none;
+        }
+
+        .auth-container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 450px;
+            width: 90%;
+        }
+
+        .auth-container h2 {
+            color: #667eea;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .auth-container p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .auth-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .auth-button {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .auth-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .auth-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        /* User Info Bar */
+        .user-info-bar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .user-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-email {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px;
+            background: #e8f5e9;
+            border-radius: 20px;
+            font-size: 0.9em;
+            color: #2e7d32;
+        }
+
+        .sync-status.syncing {
+            background: #fff3e0;
+            color: #e65100;
+        }
+
+        .sync-status.error {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .logout-btn {
+            padding: 10px 20px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #d32f2f;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .offline-mode-banner {
+            background: #ff9800;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .offline-mode-banner.hidden {
+            display: none;
+        }
+
+        /* Migration Section */
+        .migration-section {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .migration-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .migration-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .migration-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .migration-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+
+        .migration-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .migration-btn.secondary {
+            background: #9e9e9e;
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Modal -->
+    <div id="authModal" class="auth-modal">
+        <div class="auth-container">
+            <h2>🎯 Welcome to Luong's Task Manager</h2>
+            <p>Sign in to sync your tasks across all devices</p>
+
+            <div class="error-message" id="authError"></div>
+            <div class="success-message" id="authSuccess"></div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('signin')">Sign In</button>
+                <button class="auth-tab" onclick="switchAuthTab('signup')">Sign Up</button>
+            </div>
+
+            <!-- Sign In Form -->
+            <form id="signinForm" class="auth-form active" onsubmit="handleSignIn(event)">
+                <div class="form-group">
+                    <label for="signinEmail">Email</label>
+                    <input type="email" id="signinEmail" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="signinPassword">Password</label>
+                    <input type="password" id="signinPassword" required placeholder="••••••••">
+                </div>
+                <button type="submit" class="auth-button" id="signinBtn">
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Sign Up Form -->
+            <form id="signupForm" class="auth-form" onsubmit="handleSignUp(event)">
+                <div class="form-group">
+                    <label for="signupName">Display Name</label>
+                    <input type="text" id="signupName" required placeholder="Luong">
+                </div>
+                <div class="form-group">
+                    <label for="signupEmail">Email</label>
+                    <input type="email" id="signupEmail" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label for="signupPassword">Password</label>
+                    <input type="password" id="signupPassword" required placeholder="••••••••" minlength="6">
+                </div>
+                <button type="submit" class="auth-button" id="signupBtn">
+                    Create Account
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="mainApp" class="container" style="display: none;">
+        <!-- User Info Bar -->
+        <div class="user-info-bar">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">L</div>
+                <div class="user-details">
+                    <div class="user-name" id="userName">Loading...</div>
+                    <div class="user-email" id="userEmail"></div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <div class="sync-status" id="syncStatus">
+                    <span class="spinner"></span>
+                    <span>Syncing...</span>
+                </div>
+                <button class="logout-btn" onclick="handleLogout()">Logout</button>
+            </div>
+        </div>
+
+        <!-- Offline Mode Banner -->
+        <div class="offline-mode-banner hidden" id="offlineBanner">
+            ⚠️ You're offline. Changes will sync when you're back online.
+        </div>
+
+        <!-- Migration Section (shown if localStorage data exists) -->
+        <div class="migration-section" id="migrationSection" style="display: none;">
+            <h3>📦 Local Data Found</h3>
+            <div class="migration-info">
+                <strong id="localTaskCount">0</strong> tasks found in your browser's local storage.
+                Would you like to upload them to the cloud?
+            </div>
+            <div class="migration-buttons">
+                <button class="migration-btn" onclick="migrateLocalData()">
+                    ☁️ Upload to Cloud
+                </button>
+                <button class="migration-btn secondary" onclick="dismissMigration()">
+                    Keep Local Only
+                </button>
+            </div>
+        </div>
+
+        <!-- Task Manager Content will be loaded here -->
+        <div id="taskManagerContent"></div>
+    </div>
+
+    <!-- Supabase Configuration -->
+    <script src="supabase-config.js"></script>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://kkbpztplpnaygfqmtimf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrYnB6dHBscG5heWdmcW10aW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwODQ2MzYsImV4cCI6MjA3NzY2MDYzNn0.y4-_pRmDM0dCkNIilDpfp6tFkEOLk96PvSnSitVnTbM';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentUser = null;
+        let isOnline = navigator.onLine;
+
+        // Check authentication on load
+        window.addEventListener('DOMContentLoaded', async () => {
+            await checkAuth();
+            
+            // Monitor online/offline status
+            window.addEventListener('online', () => {
+                isOnline = true;
+                document.getElementById('offlineBanner').classList.add('hidden');
+                syncWithCloud();
+            });
+            
+            window.addEventListener('offline', () => {
+                isOnline = false;
+                document.getElementById('offlineBanner').classList.remove('hidden');
+            });
+        });
+
+        async function checkAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            
+            if (session) {
+                currentUser = session.user;
+                showMainApp();
+                await loadUserData();
+                checkForLocalData();
+            } else {
+                showAuthModal();
+            }
+        }
+
+        function showAuthModal() {
+            document.getElementById('authModal').classList.remove('hidden');
+            document.getElementById('mainApp').style.display = 'none';
+        }
+
+        function showMainApp() {
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('mainApp').style.display = 'block';
+        }
+
+        function switchAuthTab(tab) {
+            // Update tabs
+            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+            
+            if (tab === 'signin') {
+                document.querySelectorAll('.auth-tab')[0].classList.add('active');
+                document.getElementById('signinForm').classList.add('active');
+            } else {
+                document.querySelectorAll('.auth-tab')[1].classList.add('active');
+                document.getElementById('signupForm').classList.add('active');
+            }
+            
+            // Clear messages
+            document.getElementById('authError').classList.remove('show');
+            document.getElementById('authSuccess').classList.remove('show');
+        }
+
+        async function handleSignIn(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('signinEmail').value;
+            const password = document.getElementById('signinPassword').value;
+            const btn = document.getElementById('signinBtn');
+            
+            btn.disabled = true;
+            btn.textContent = 'Signing in...';
+            
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                currentUser = data.user;
+                showMainApp();
+                await loadUserData();
+                checkForLocalData();
+                
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            }
+        }
+
+        async function handleSignUp(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const btn = document.getElementById('signupBtn');
+            
+            btn.disabled = true;
+            btn.textContent = 'Creating account...';
+            
+            try {
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            display_name: name
+                        }
+                    }
+                });
+                
+                if (error) throw error;
+                
+                // Create user profile
+                if (data.user) {
+                    await supabaseClient.from('user_profiles').insert([{
+                        id: data.user.id,
+                        username: email.split('@')[0],
+                        display_name: name,
+                        email: email
+                    }]);
+                    
+                    showSuccess('Account created! Please check your email to verify.');
+                    setTimeout(() => switchAuthTab('signin'), 2000);
+                }
+                
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+            }
+        }
+
+        async function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                await supabaseClient.auth.signOut();
+                currentUser = null;
+                showAuthModal();
+            }
+        }
+
+        async function loadUserData() {
+            if (!currentUser) return;
+            
+            // Update UI
+            const displayName = currentUser.user_metadata?.display_name || currentUser.email.split('@')[0];
+            document.getElementById('userName').textContent = displayName;
+            document.getElementById('userEmail').textContent = currentUser.email;
+            document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+            
+            // Load tasks from cloud
+            await loadTasksFromCloud();
+        }
+
+        async function loadTasksFromCloud() {
+            updateSyncStatus('syncing', 'Loading tasks...');
+            
+            try {
+                const { data, error } = await supabaseClient
+                    .from('tasks')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .order('next_due', { ascending: true });
+                
+                if (error) throw error;
+                
+                // Convert and load tasks (will integrate with existing task manager)
+                console.log('Loaded tasks:', data);
+                updateSyncStatus('synced', `✓ ${data.length} tasks synced`);
+                
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                updateSyncStatus('error', 'Sync failed');
+            }
+        }
+
+        function updateSyncStatus(status, message) {
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.className = 'sync-status ' + status;
+            
+            if (status === 'syncing') {
+                statusEl.innerHTML = '<span class="spinner"></span><span>' + message + '</span>';
+            } else {
+                statusEl.innerHTML = '<span>' + message + '</span>';
+            }
+        }
+
+        function checkForLocalData() {
+            const localTasks = localStorage.getItem('monthlyTaskManager_tasks');
+            if (localTasks) {
+                const tasks = JSON.parse(localTasks);
+                if (tasks.length > 0) {
+                    document.getElementById('localTaskCount').textContent = tasks.length;
+                    document.getElementById('migrationSection').style.display = 'block';
+                }
+            }
+        }
+
+        async function migrateLocalData() {
+            const localTasks = localStorage.getItem('monthlyTaskManager_tasks');
+            if (!localTasks) return;
+            
+            try {
+                const tasks = JSON.parse(localTasks);
+                updateSyncStatus('syncing', 'Uploading tasks...');
+                
+                const tasksData = tasks.map(task => ({
+                    id: task.id,
+                    user_id: currentUser.id,
+                    title: task.title,
+                    description: task.description,
+                    priority: task.priority,
+                    frequency: task.frequency,
+                    deadline: task.deadline,
+                    time: task.time || null,
+                    completed: task.completed,
+                    completed_at: task.completedAt || null,
+                    next_due: task.nextDue
+                }));
+                
+                const { error } = await supabaseClient
+                    .from('tasks')
+                    .upsert(tasksData);
+                
+                if (error) throw error;
+                
+                document.getElementById('migrationSection').style.display = 'none';
+                updateSyncStatus('synced', `✓ ${tasks.length} tasks uploaded`);
+                showSuccess(`Successfully uploaded ${tasks.length} tasks to cloud!`);
+                
+            } catch (error) {
+                console.error('Migration error:', error);
+                showError('Failed to upload tasks: ' + error.message);
+            }
+        }
+
+        function dismissMigration() {
+            document.getElementById('migrationSection').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorEl = document.getElementById('authError');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+            setTimeout(() => errorEl.classList.remove('show'), 5000);
+        }
+
+        function showSuccess(message) {
+            const successEl = document.getElementById('authSuccess');
+            successEl.textContent = message;
+            successEl.classList.add('show');
+            setTimeout(() => successEl.classList.remove('show'), 5000);
+        }
+
+        async function syncWithCloud() {
+            if (!isOnline || !currentUser) return;
+            await loadTasksFromCloud();
+        }
+    </script>
+</body>
+</html>

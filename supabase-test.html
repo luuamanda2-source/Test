@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test</title>
+    
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .test-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin-bottom: 10px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid #667eea;
+            font-family: monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .info {
+            border-left-color: #17a2b8;
+            background: #d1ecf1;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Supabase Connection Test</h1>
+        
+        <div class="test-section">
+            <h3>1️⃣ Test Connection</h3>
+            <button onclick="testConnection()">Test Supabase Connection</button>
+            <div id="connectionResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2️⃣ Create Account</h3>
+            <label>Email:</label>
+            <input type="email" id="signupEmail" placeholder="your@email.com">
+            <label>Password:</label>
+            <input type="password" id="signupPassword" placeholder="••••••••" minlength="6">
+            <label>Display Name:</label>
+            <input type="text" id="signupName" placeholder="Luong">
+            <button onclick="testSignUp()">Create Test Account</button>
+            <div id="signupResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3️⃣ Sign In</h3>
+            <label>Email:</label>
+            <input type="email" id="signinEmail" placeholder="your@email.com">
+            <label>Password:</label>
+            <input type="password" id="signinPassword" placeholder="••••••••">
+            <button onclick="testSignIn()">Sign In</button>
+            <div id="signinResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>4️⃣ Test Database</h3>
+            <button onclick="testDatabase()" id="dbTestBtn" disabled>Test Database Operations</button>
+            <div id="databaseResult"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>5️⃣ Current Session</h3>
+            <button onclick="checkSession()">Check Current Session</button>
+            <button onclick="signOut()">Sign Out</button>
+            <div id="sessionResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://kkbpztplpnaygfqmtimf.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrYnB6dHBscG5heWdmcW10aW1mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIwODQ2MzYsImV4cCI6MjA3NzY2MDYzNn0.y4-_pRmDM0dCkNIilDpfp6tFkEOLk96PvSnSitVnTbM';
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        let currentUser = null;
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('connectionResult');
+            resultDiv.innerHTML = '<div class="result info">Testing connection...</div>';
+            
+            try {
+                const { data, error } = await supabaseClient.auth.getSession();
+                
+                if (error) throw error;
+                
+                resultDiv.innerHTML = `<div class="result success">✅ Connection successful!
+                
+Project URL: ${SUPABASE_URL}
+Session: ${data.session ? 'Active' : 'No active session'}
+                
+Supabase is working correctly!</div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Connection failed:
+                
+${error.message}</div>`;
+            }
+        }
+
+        async function testSignUp() {
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const name = document.getElementById('signupName').value;
+            const resultDiv = document.getElementById('signupResult');
+            
+            if (!email || !password || !name) {
+                resultDiv.innerHTML = '<div class="result error">Please fill in all fields</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="result info">Creating account...</div>';
+            
+            try {
+                const { data, error } = await supabaseClient.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            display_name: name
+                        }
+                    }
+                });
+                
+                if (error) throw error;
+                
+                // Create user profile
+                if (data.user) {
+                    const { error: profileError } = await supabaseClient
+                        .from('user_profiles')
+                        .insert([{
+                            id: data.user.id,
+                            username: email.split('@')[0],
+                            display_name: name,
+                            email: email
+                        }]);
+                    
+                    if (profileError) {
+                        console.error('Profile creation error:', profileError);
+                    }
+                }
+                
+                resultDiv.innerHTML = `<div class="result success">✅ Account created successfully!
+                
+User ID: ${data.user.id}
+Email: ${data.user.email}
+
+${data.user.identities.length === 0 ? 'Note: Please check your email to verify your account.' : 'You can now sign in!'}</div>`;
+                
+                currentUser = data.user;
+                document.getElementById('dbTestBtn').disabled = false;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Sign up failed:
+                
+${error.message}</div>`;
+            }
+        }
+
+        async function testSignIn() {
+            const email = document.getElementById('signinEmail').value;
+            const password = document.getElementById('signinPassword').value;
+            const resultDiv = document.getElementById('signinResult');
+            
+            if (!email || !password) {
+                resultDiv.innerHTML = '<div class="result error">Please fill in email and password</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="result info">Signing in...</div>';
+            
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                currentUser = data.user;
+                document.getElementById('dbTestBtn').disabled = false;
+                
+                resultDiv.innerHTML = `<div class="result success">✅ Signed in successfully!
+                
+User ID: ${data.user.id}
+Email: ${data.user.email}
+Display Name: ${data.user.user_metadata?.display_name || 'Not set'}
+
+You can now test database operations!</div>`;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Sign in failed:
+                
+${error.message}</div>`;
+            }
+        }
+
+        async function testDatabase() {
+            const resultDiv = document.getElementById('databaseResult');
+            
+            if (!currentUser) {
+                resultDiv.innerHTML = '<div class="result error">Please sign in first!</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="result info">Testing database operations...</div>';
+            
+            try {
+                // Test 1: Insert a task
+                const testTask = {
+                    user_id: currentUser.id,
+                    title: 'Test Task from Supabase Test',
+                    description: 'This is a test task to verify database connectivity',
+                    priority: 'medium',
+                    frequency: 'once',
+                    deadline: new Date().toISOString().split('T')[0],
+                    time: '12:00',
+                    completed: false,
+                    next_due: new Date().toISOString()
+                };
+                
+                const { data: insertData, error: insertError } = await supabaseClient
+                    .from('tasks')
+                    .insert([testTask])
+                    .select();
+                
+                if (insertError) throw insertError;
+                
+                // Test 2: Read tasks
+                const { data: readData, error: readError } = await supabaseClient
+                    .from('tasks')
+                    .select('*')
+                    .eq('user_id', currentUser.id);
+                
+                if (readError) throw readError;
+                
+                // Test 3: Update the task
+                const { data: updateData, error: updateError } = await supabaseClient
+                    .from('tasks')
+                    .update({ completed: true })
+                    .eq('id', insertData[0].id)
+                    .select();
+                
+                if (updateError) throw updateError;
+                
+                // Test 4: Delete the task
+                const { error: deleteError } = await supabaseClient
+                    .from('tasks')
+                    .delete()
+                    .eq('id', insertData[0].id);
+                
+                if (deleteError) throw deleteError;
+                
+                resultDiv.innerHTML = `<div class="result success">✅ All database tests passed!
+                
+✓ INSERT: Created test task
+✓ SELECT: Retrieved ${readData.length} task(s)
+✓ UPDATE: Updated task status
+✓ DELETE: Removed test task
+
+Your database is working perfectly!
+You can now integrate with your task manager app.</div>`;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Database test failed:
+                
+${error.message}
+
+Details: ${JSON.stringify(error, null, 2)}</div>`;
+            }
+        }
+
+        async function checkSession() {
+            const resultDiv = document.getElementById('sessionResult');
+            
+            try {
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                
+                if (session) {
+                    currentUser = session.user;
+                    document.getElementById('dbTestBtn').disabled = false;
+                    
+                    resultDiv.innerHTML = `<div class="result success">✅ Active session found!
+                    
+User ID: ${session.user.id}
+Email: ${session.user.email}
+Display Name: ${session.user.user_metadata?.display_name || 'Not set'}
+Session expires: ${new Date(session.expires_at * 1000).toLocaleString()}</div>`;
+                } else {
+                    currentUser = null;
+                    document.getElementById('dbTestBtn').disabled = true;
+                    resultDiv.innerHTML = '<div class="result info">No active session. Please sign in.</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Error checking session:
+                
+${error.message}</div>`;
+            }
+        }
+
+        async function signOut() {
+            const resultDiv = document.getElementById('sessionResult');
+            
+            try {
+                const { error } = await supabaseClient.auth.signOut();
+                
+                if (error) throw error;
+                
+                currentUser = null;
+                document.getElementById('dbTestBtn').disabled = true;
+                
+                resultDiv.innerHTML = '<div class="result success">✅ Signed out successfully!</div>';
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">❌ Sign out failed:
+                
+${error.message}</div>`;
+            }
+        }
+
+        // Check session on load
+        window.addEventListener('DOMContentLoaded', checkSession);
+    </script>
+</body>
+</html>
