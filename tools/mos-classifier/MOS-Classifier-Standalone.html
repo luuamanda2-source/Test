@@ -368,7 +368,13 @@
 
         // Classification logic - matches server.js exactly
         function classifyCase(comment) {
-            if (!comment || comment === 'N/A') {
+            // Debug: Log the comment being classified
+            if (typeof comment === 'undefined') {
+                console.warn('Undefined comment passed to classifyCase');
+                return 'Unclassified';
+            }
+
+            if (!comment || comment === 'N/A' || comment.trim() === '') {
                 return 'Unclassified';
             }
 
@@ -464,9 +470,15 @@
                 }
 
                 // Classify each row
-                classifiedData = rows.map(row => {
+                classifiedData = rows.map((row, index) => {
                     const comment = row['Any Other Comments'] || '';
                     const classification = classifyCase(comment);
+
+                    // Debug: Log first few classifications
+                    if (index < 3) {
+                        console.log(`Row ${index + 1} - Comment: "${comment}" -> Classification: "${classification}"`);
+                    }
+
                     return {
                         ...row,
                         'Escalation - Sub Reason (Specific Issue Type)': classification
@@ -488,20 +500,30 @@
             const lines = text.split('\n').filter(line => line.trim());
             if (lines.length === 0) return [];
 
-            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            // Parse headers using the same CSV line parser to handle quoted headers
+            const headers = parseCSVLine(lines[0]);
+            console.log('CSV Headers detected:', headers);
             const rows = [];
 
             for (let i = 1; i < lines.length; i++) {
                 const values = parseCSVLine(lines[i]);
-                if (values.length === headers.length) {
-                    const row = {};
-                    headers.forEach((header, index) => {
-                        row[header] = values[index];
-                    });
-                    rows.push(row);
+
+                // Create row object even if column count doesn't match exactly
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+
+                // Debug: Log first row to verify parsing
+                if (i === 1) {
+                    console.log('First data row:', row);
+                    console.log('Any Other Comments value:', row['Any Other Comments']);
                 }
+
+                rows.push(row);
             }
 
+            console.log(`Parsed ${rows.length} rows from CSV`);
             return rows;
         }
 

@@ -83,17 +83,6 @@
             box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-docs {
-            background: #f8f9fa;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-        .btn-docs:hover {
-            background: #667eea;
-            color: white;
-        }
-
         .tool-container {
             background: white;
             border-radius: 0 0 15px 15px;
@@ -106,42 +95,6 @@
             min-height: 900px;
             border: none;
             display: block;
-        }
-
-        .info-banner {
-            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
-            padding: 20px 30px;
-            border-left: 5px solid #667eea;
-            margin-bottom: 0;
-        }
-
-        .info-banner h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 1.2em;
-        }
-
-        .info-banner ul {
-            list-style: none;
-            padding: 0;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 10px;
-        }
-
-        .info-banner li {
-            color: #555;
-            padding: 5px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .info-banner li::before {
-            content: '✓';
-            color: #667eea;
-            font-weight: bold;
-            font-size: 1.2em;
         }
 
         @media (max-width: 768px) {
@@ -159,10 +112,6 @@
 
             .tool-container iframe {
                 min-height: 700px;
-            }
-
-            .info-banner ul {
-                grid-template-columns: 1fr;
             }
         }
 
@@ -200,24 +149,7 @@
                 <a href="index.html" class="btn btn-home">
                     🏠 Home
                 </a>
-                <a href="tools/mos-classifier/README.md" target="_blank" class="btn btn-docs">
-                    📖 Documentation
-                </a>
             </div>
-        </div>
-
-        <div class="info-banner">
-            <h3>✨ Key Features</h3>
-            <ul>
-                <li>100% browser-based, no server needed</li>
-                <li>Zero dependencies, single HTML file</li>
-                <li>Privacy first - all processing local</li>
-                <li>Works completely offline</li>
-                <li>11 comprehensive categories</li>
-                <li>Visual statistics dashboard</li>
-                <li>CSV export with timestamp</li>
-                <li>Drag & drop file upload</li>
-            </ul>
         </div>
 
         <div class="tool-container">
@@ -243,8 +175,7 @@
             const iframe = document.querySelector('iframe');
             const windowHeight = window.innerHeight;
             const headerHeight = document.querySelector('.header').offsetHeight;
-            const bannerHeight = document.querySelector('.info-banner').offsetHeight;
-            const minHeight = windowHeight - headerHeight - bannerHeight - 100;
+            const minHeight = windowHeight - headerHeight - 100;
             iframe.style.minHeight = Math.max(minHeight, 700) + 'px';
         }
 
