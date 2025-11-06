@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOS Cases Classifier - Luong's Productivity Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px 15px 0 0;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header-left {
+            flex: 1;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-home {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-docs {
+            background: #f8f9fa;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-docs:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .tool-container {
+            background: white;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .tool-container iframe {
+            width: 100%;
+            min-height: 900px;
+            border: none;
+            display: block;
+        }
+
+        .info-banner {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+            padding: 20px 30px;
+            border-left: 5px solid #667eea;
+            margin-bottom: 0;
+        }
+
+        .info-banner h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .info-banner ul {
+            list-style: none;
+            padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+        }
+
+        .info-banner li {
+            color: #555;
+            padding: 5px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-banner li::before {
+            content: '✓';
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .header p {
+                font-size: 1em;
+            }
+
+            .tool-container iframe {
+                min-height: 700px;
+            }
+
+            .info-banner ul {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .nav-buttons {
+                width: 100%;
+            }
+
+            .btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-left">
+                <h1>
+                    <span>🎯</span>
+                    MOS Cases Classifier
+                </h1>
+                <p>Automatically classify MOS cases into 11 predefined categories</p>
+            </div>
+            <div class="nav-buttons">
+                <a href="index.html" class="btn btn-home">
+                    🏠 Home
+                </a>
+                <a href="tools/mos-classifier/README.md" target="_blank" class="btn btn-docs">
+                    📖 Documentation
+                </a>
+            </div>
+        </div>
+
+        <div class="info-banner">
+            <h3>✨ Key Features</h3>
+            <ul>
+                <li>100% browser-based, no server needed</li>
+                <li>Zero dependencies, single HTML file</li>
+                <li>Privacy first - all processing local</li>
+                <li>Works completely offline</li>
+                <li>11 comprehensive categories</li>
+                <li>Visual statistics dashboard</li>
+                <li>CSV export with timestamp</li>
+                <li>Drag & drop file upload</li>
+            </ul>
+        </div>
+
+        <div class="tool-container">
+            <iframe 
+                src="tools/mos-classifier/MOS-Classifier-Standalone.html" 
+                title="MOS Cases Classifier Tool"
+                allow="clipboard-read; clipboard-write">
+            </iframe>
+        </div>
+    </div>
+
+    <script>
+        // Auto-adjust iframe height based on content
+        window.addEventListener('message', function(e) {
+            if (e.data && e.data.height) {
+                const iframe = document.querySelector('iframe');
+                iframe.style.height = e.data.height + 'px';
+            }
+        });
+
+        // Responsive iframe height
+        function adjustIframeHeight() {
+            const iframe = document.querySelector('iframe');
+            const windowHeight = window.innerHeight;
+            const headerHeight = document.querySelector('.header').offsetHeight;
+            const bannerHeight = document.querySelector('.info-banner').offsetHeight;
+            const minHeight = windowHeight - headerHeight - bannerHeight - 100;
+            iframe.style.minHeight = Math.max(minHeight, 700) + 'px';
+        }
+
+        window.addEventListener('load', adjustIframeHeight);
+        window.addEventListener('resize', adjustIframeHeight);
+    </script>
+</body>
+</html>
+

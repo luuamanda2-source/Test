@@ -537,6 +537,136 @@
                 opacity: 0;
             }
         }
+
+        /* Horizontal Button Layout Styles */
+        .action-buttons-container {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .button-group-label {
+            font-weight: 600;
+            color: #667eea;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .button-group-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Edit Task Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        /* Next Due Date Badge */
+        .next-due-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .next-due-info {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 10px 15px;
+            margin-top: 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #555;
+        }
+
+        @media (max-width: 768px) {
+            .action-buttons-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .button-group-buttons {
+                flex-direction: column;
+            }
+
+            .button-group-buttons .btn {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
@@ -658,14 +788,97 @@
             </div>
         </div>
 
-        <div style="text-align: center; margin-top: 20px;">
-            <button class="btn btn-success" onclick="exportTasks()">📤 Export Tasks</button>
-            <button class="btn btn-success" onclick="importTasks()">📥 Import Tasks</button>
-            <button class="btn btn-success" onclick="exportToClipboard()">📋 Copy Tasks</button>
-            <button class="btn btn-success" onclick="importFromClipboard()">📋 Paste Tasks</button>
-            <button class="btn btn-danger" onclick="clearCompleted()">🧹 Clear Completed</button>
-            <button class="btn btn-danger" onclick="clearAllTasks()">🗑️ Clear All</button>
-            <button class="btn" onclick="window.location.href='index.html'">🏠 Home</button>
+        <!-- Action Buttons - Horizontal Layout -->
+        <div class="action-buttons-container">
+            <div class="button-group">
+                <div class="button-group-label">📁 Data Management</div>
+                <div class="button-group-buttons">
+                    <button class="btn btn-success" onclick="exportTasks()">📤 Export Tasks</button>
+                    <button class="btn btn-success" onclick="importTasks()">📥 Import Tasks</button>
+                    <button class="btn btn-success" onclick="exportToClipboard()">📋 Copy Tasks</button>
+                    <button class="btn btn-success" onclick="importFromClipboard()">📋 Paste Tasks</button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <div class="button-group-label">🧹 Cleanup</div>
+                <div class="button-group-buttons">
+                    <button class="btn btn-danger" onclick="clearCompleted()">🧹 Clear Completed</button>
+                    <button class="btn btn-danger" onclick="clearAllTasks()">🗑️ Clear All</button>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <div class="button-group-label">🏠 Navigation</div>
+                <div class="button-group-buttons">
+                    <button class="btn" onclick="window.location.href='index.html'">🏠 Home</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div id="editTaskModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">✏️ Edit Task</h2>
+                <button class="modal-close" onclick="closeEditModal()">&times;</button>
+            </div>
+            <form id="editTaskForm" class="task-form">
+                <input type="hidden" id="editTaskId">
+
+                <div class="input-group">
+                    <label for="editTaskTitle">Task Title *</label>
+                    <input type="text" id="editTaskTitle" placeholder="Enter task title" required>
+                </div>
+
+                <div class="input-group">
+                    <label for="editTaskDescription">Description</label>
+                    <textarea id="editTaskDescription" rows="3" placeholder="Enter task description (URLs will be clickable)"></textarea>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="editTaskPriority">Priority</label>
+                        <select id="editTaskPriority" class="priority-select">
+                            <option value="low">Low Priority</option>
+                            <option value="medium">Medium Priority</option>
+                            <option value="high">High Priority</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="editTaskFrequency">Frequency</label>
+                        <select id="editTaskFrequency" class="frequency-select">
+                            <option value="once">One-time Task</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-row">
+                    <div class="input-group">
+                        <label for="editTaskDeadline">Deadline *</label>
+                        <input type="date" id="editTaskDeadline" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="editTaskTime">Time (Optional)</label>
+                        <input type="time" id="editTaskTime">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn" style="flex: 1;">
+                        💾 Save Changes
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="closeEditModal()" style="flex: 1;">
+                        ❌ Cancel
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -1268,6 +1481,100 @@
             }
         }
 
+        // 🔥 NEW: Edit task functionality
+        function editTask(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) {
+                showNotification('Task not found', 'error');
+                return;
+            }
+
+            // Populate the edit form
+            document.getElementById('editTaskId').value = task.id;
+            document.getElementById('editTaskTitle').value = task.title;
+            document.getElementById('editTaskDescription').value = task.description || '';
+            document.getElementById('editTaskPriority').value = task.priority;
+            document.getElementById('editTaskFrequency').value = task.frequency;
+            document.getElementById('editTaskDeadline').value = task.deadline;
+            document.getElementById('editTaskTime').value = task.time || '';
+
+            // Show the modal
+            document.getElementById('editTaskModal').classList.add('active');
+        }
+
+        // 🔥 NEW: Close edit modal
+        function closeEditModal() {
+            document.getElementById('editTaskModal').classList.remove('active');
+            document.getElementById('editTaskForm').reset();
+        }
+
+        // 🔥 NEW: Save edited task
+        async function saveEditedTask(e) {
+            e.preventDefault();
+
+            const taskId = document.getElementById('editTaskId').value;
+            const task = tasks.find(t => t.id === taskId);
+
+            if (!task) {
+                showNotification('Task not found', 'error');
+                return;
+            }
+
+            // Update task properties
+            task.title = document.getElementById('editTaskTitle').value.trim();
+            task.description = document.getElementById('editTaskDescription').value.trim();
+            task.priority = document.getElementById('editTaskPriority').value;
+            task.frequency = document.getElementById('editTaskFrequency').value;
+            task.deadline = document.getElementById('editTaskDeadline').value;
+            task.time = document.getElementById('editTaskTime').value;
+
+            // Recalculate next due date
+            task.nextDue = calculateNextDue(task.deadline, task.time, task.frequency);
+
+            // Save to Supabase if enabled
+            if (isSupabaseEnabled && currentUser) {
+                try {
+                    await saveTaskToSupabase(task);
+                    console.log('✅ Task updated in Supabase:', task.title);
+                } catch (error) {
+                    console.error('❌ Error updating task in Supabase:', error);
+                    showNotification('Task updated locally, but failed to sync to cloud', 'warning');
+                }
+            }
+
+            saveTasks();
+            updateStats();
+            updateDisplay();
+            closeEditModal();
+
+            showNotification('✅ Task updated successfully!', 'success');
+        }
+
+        // Setup edit form submission and modal click-outside-to-close
+        document.addEventListener('DOMContentLoaded', function() {
+            const editForm = document.getElementById('editTaskForm');
+            if (editForm) {
+                editForm.addEventListener('submit', saveEditedTask);
+            }
+
+            // Close modal when clicking outside
+            const modal = document.getElementById('editTaskModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeEditModal();
+                    }
+                });
+            }
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeEditModal();
+                }
+            });
+        });
+
         // Switch view
         function switchView(view) {
             currentView = view;
@@ -1425,6 +1732,7 @@
         function getFilteredTasks() {
             const now = new Date();
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const todayStr = today.toISOString().split('T')[0];
             const weekStart = new Date(today);
             weekStart.setDate(today.getDate() - today.getDay());
             const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -1433,7 +1741,15 @@
                 case 'today':
                     return tasks.filter(t => {
                         const taskDate = new Date(t.nextDue);
-                        // For today's view, only show incomplete tasks due today
+                        const taskDeadlineStr = t.deadline;
+
+                        // 🔥 FIX: For today's view, show:
+                        // 1. Incomplete tasks due today
+                        // 2. For daily tasks, only show if deadline is today (not old completed ones)
+                        if (t.frequency === 'daily') {
+                            return taskDeadlineStr === todayStr && !t.completed;
+                        }
+
                         return !t.completed && taskDate.toDateString() === today.toDateString();
                     });
                 case 'week':
@@ -1449,11 +1765,31 @@
                 case 'overdue':
                     return tasks.filter(t => !t.completed && new Date(t.nextDue) < now);
                 case 'completed':
-                    return tasks.filter(t => t.completed);
+                    // 🔥 FIX: For completed view, show recent completions (last 30 days)
+                    const thirtyDaysAgo = new Date(today);
+                    thirtyDaysAgo.setDate(today.getDate() - 30);
+                    return tasks.filter(t => {
+                        if (!t.completed) return false;
+                        if (!t.completedAt) return true; // Show old tasks without completedAt
+                        const completedDate = new Date(t.completedAt);
+                        return completedDate >= thirtyDaysAgo;
+                    });
                 case 'high':
                     return tasks.filter(t => t.priority === 'high' && !t.completed);
                 default:
-                    return tasks;
+                    // 🔥 FIX: For 'all' view, hide old completed daily tasks
+                    return tasks.filter(t => {
+                        if (!t.completed) return true;
+
+                        // For completed daily tasks, only show today's
+                        if (t.frequency === 'daily') {
+                            const taskDeadlineStr = t.deadline;
+                            return taskDeadlineStr === todayStr;
+                        }
+
+                        // Show all other completed tasks
+                        return true;
+                    });
             }
         }
 
@@ -1503,6 +1839,72 @@
 
             const dueTimeDisplay = task.time ? `at ${task.time}` : '';
 
+            // 🔥 NEW: Next Due Date Display for Recurring Tasks
+            let nextDueDisplay = '';
+            // Only show "Next Due" for incomplete recurring tasks
+            if (!task.completed && task.frequency !== 'once' && task.nextDue) {
+                const nextDueDate = new Date(task.nextDue);
+                const nextDueDateStr = nextDueDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'short',
+                    day: 'numeric',
+                    year: nextDueDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+                });
+                const nextDueTimeStr = task.time ? ` at ${task.time}` : '';
+
+                nextDueDisplay = `
+                    <div class="next-due-info">
+                        📅 <strong>Next Due:</strong> ${nextDueDateStr}${nextDueTimeStr}
+                        <span class="next-due-badge">${task.frequency.toUpperCase()}</span>
+                    </div>
+                `;
+            }
+
+            // 🔥 NEW: For completed recurring tasks, show when it was completed and when next occurrence is
+            if (task.completed && task.frequency !== 'once' && task.completedAt) {
+                const completedDate = new Date(task.completedAt);
+                const completedDateStr = completedDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'short',
+                    day: 'numeric',
+                    year: completedDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+                });
+                const completedTimeStr = completedDate.toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                // Calculate when the next occurrence should be
+                let nextOccurrenceDate = new Date(completedDate);
+                switch (task.frequency) {
+                    case 'daily':
+                        nextOccurrenceDate.setDate(completedDate.getDate() + 1);
+                        break;
+                    case 'weekly':
+                        nextOccurrenceDate.setDate(completedDate.getDate() + 7);
+                        break;
+                    case 'monthly':
+                        nextOccurrenceDate.setMonth(completedDate.getMonth() + 1);
+                        break;
+                }
+
+                const nextOccurrenceDateStr = nextOccurrenceDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    month: 'short',
+                    day: 'numeric',
+                    year: nextOccurrenceDate.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+                });
+                const nextOccurrenceTimeStr = task.time ? ` at ${task.time}` : '';
+
+                nextDueDisplay = `
+                    <div class="next-due-info" style="background: #e8f5e9; border-left-color: #4caf50;">
+                        ✅ <strong>Completed:</strong> ${completedDateStr} at ${completedTimeStr}<br>
+                        📅 <strong>Next Occurrence:</strong> ${nextOccurrenceDateStr}${nextOccurrenceTimeStr}
+                        <span class="next-due-badge" style="background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);">${task.frequency.toUpperCase()}</span>
+                    </div>
+                `;
+            }
+
             return `
                 <div class="task-item ${task.completed ? 'completed' : ''} ${urgencyClass}">
                     <div class="task-header">
@@ -1518,6 +1920,8 @@
 
                     ${task.description ? `<div class="task-description">${linkifyText(task.description)}</div>` : ''}
 
+                    ${nextDueDisplay}
+
                     <div class="task-meta">
                         <div class="task-dates">
                             <span>Due: ${dueDateDisplay} ${dueTimeDisplay}</span>
@@ -1526,6 +1930,9 @@
                         <div class="task-actions">
                             <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''}
                                    onchange="toggleTask('${task.id}')">
+                            <button class="btn btn-small" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);" onclick="editTask('${task.id}')">
+                                ✏️
+                            </button>
                             <button class="btn btn-small btn-danger" onclick="deleteTask('${task.id}')">
                                 🗑️
                             </button>
