@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOS Cases Classifier - Standalone</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.8rem;
+        }
+
+        .description {
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f8f9ff;
+        }
+
+        .upload-area.drag-over {
+            border-color: #764ba2;
+            background: #f0f0ff;
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .file-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h4 {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .count {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        thead {
+            background: #667eea;
+            color: white;
+        }
+
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.8;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 MOS Cases Classifier</h1>
+            <p class="subtitle">Standalone Version - No Server Required!</p>
+            <p class="subtitle" style="font-size: 0.9rem; margin-top: 5px;">
+                ✅ Runs completely in your browser | ✅ No installation needed | ✅ Works offline
+            </p>
+        </header>
+
+        <main>
+            <!-- Upload Section -->
+            <section id="uploadSection" class="card">
+                <h2>📤 Upload MOS Cases CSV</h2>
+                <p class="description">Upload your CSV file - all processing happens in your browser</p>
+                
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-icon">📁</div>
+                    <p>Drag & drop your CSV file here or click to browse</p>
+                    <input type="file" id="fileInput" accept=".csv" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        Browse Files
+                    </button>
+                </div>
+
+                <div id="fileInfo" class="file-info hidden">
+                    <p><strong>Selected file:</strong> <span id="fileName"></span></p>
+                    <p style="font-size: 0.9rem; color: #666;"><span id="fileSize"></span></p>
+                    <button class="btn btn-success" onclick="classifyFile()">
+                        Classify Cases
+                    </button>
+                </div>
+            </section>
+
+            <!-- Loading Section -->
+            <section id="loadingSection" class="card hidden">
+                <h2>⏳ Processing...</h2>
+                <div class="loader"></div>
+                <p style="text-align: center; color: #666;">Classifying your MOS cases...</p>
+            </section>
+
+            <!-- Results Section -->
+            <section id="resultsSection" class="card hidden">
+                <h2>✅ Classification Complete</h2>
+                
+                <div id="statsGrid" class="stats-grid"></div>
+
+                <div style="text-align: center; margin: 20px 0;">
+                    <button class="btn btn-success" onclick="downloadResults()">
+                        ⬇️ Download Classified CSV
+                    </button>
+                    <button class="btn btn-secondary" onclick="reset()">
+                        🔄 Classify Another File
+                    </button>
+                </div>
+
+                <h3>Preview (First 10 cases)</h3>
+                <div style="overflow-x: auto;">
+                    <table id="previewTable">
+                        <thead>
+                            <tr>
+                                <th>Ticket ID</th>
+                                <th>Any Other Comments</th>
+                                <th>Classification</th>
+                            </tr>
+                        </thead>
+                        <tbody id="previewBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>MOS Cases Classifier v3.0 (Standalone) | No server required - runs entirely in your browser</p>
+        </footer>
+    </div>
+
+    <script>
+        // Global variables
+        let selectedFile = null;
+        let classifiedData = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            // File input change
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Drag and drop
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) validateAndSelectFile(file);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) validateAndSelectFile(file);
+        }
+
+        function validateAndSelectFile(file) {
+            if (!file.name.endsWith('.csv')) {
+                alert('Please select a valid CSV file');
+                return;
+            }
+
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            if (file.size > maxSize) {
+                alert('File size exceeds 10MB. Please select a smaller file.');
+                return;
+            }
+
+            selectedFile = file;
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = `Size: ${(file.size / 1024).toFixed(2)} KB`;
+            document.getElementById('fileInfo').classList.remove('hidden');
+        }
+
+        // Classification logic - matches server.js exactly
+        function classifyCase(comment) {
+            if (!comment || comment === 'N/A') {
+                return 'Unclassified';
+            }
+
+            const lowerComment = comment.toLowerCase();
+
+            // Status Conflict (Shipped/OOS)
+            if ((lowerComment.includes('marked as shipped') || lowerComment.includes('marked as ship')) &&
+                (lowerComment.includes('out of stock') || lowerComment.includes('not shipped') ||
+                 lowerComment.includes("hasn't") || lowerComment.includes('oos'))) {
+                return 'Status Conflict (Shipped/OOS)';
+            }
+
+            // Label/Document Failure
+            if (lowerComment.includes('blank') && lowerComment.includes('label')) {
+                return 'Label/Document Failure';
+            }
+
+            // API/Platform Blockers
+            if ((lowerComment.includes('api') || lowerComment.includes('sftp') ||
+                 lowerComment.includes('file is not getting created') ||
+                 lowerComment.includes('not getting exported')) ||
+                (lowerComment.includes('tech issue') && lowerComment.includes('dropship'))) {
+                return 'API/Platform Blockers';
+            }
+
+            // System Feature Failure
+            if ((lowerComment.includes('system does not allow') ||
+                 (lowerComment.includes('no') && lowerComment.includes('option available'))) &&
+                (lowerComment.includes('change') || lowerComment.includes('changing')) &&
+                lowerComment.includes('ship')) {
+                return 'System Feature Failure';
+            }
+
+            // Replacement/Logistics Error
+            if ((lowerComment.includes('replacement') && (lowerComment.includes('order') || lowerComment.includes('po'))) ||
+                (lowerComment.includes('split') || lowerComment.includes('two items') ||
+                 lowerComment.includes('two packages') || lowerComment.includes('additional label')) ||
+                (lowerComment.includes('wrong tracking') || lowerComment.includes('confusing order')) ||
+                (lowerComment.includes('shipped incorrectly') || lowerComment.includes('missing hardware'))) {
+                return 'Replacement/Logistics Error';
+            }
+
+            // Mismatched Status/Stuck
+            if ((lowerComment.includes('replaced') || lowerComment.includes('replacement')) &&
+                (lowerComment.includes('still') && (lowerComment.includes('overdue') ||
+                 lowerComment.includes('pending')))) {
+                return 'Mismatched Status/Stuck';
+            }
+
+            // Missing/Incorrect Data
+            if (lowerComment.includes('return tracking') &&
+                (lowerComment.includes('not find') || lowerComment.includes('no movement'))) {
+                return 'Missing/Incorrect Data';
+            }
+
+            // Financial/Claim/Refund
+            if (lowerComment.includes('refund') || lowerComment.includes('compensation') ||
+                lowerComment.includes('claim') || lowerComment.includes('discount')) {
+                return 'Financial/Claim/Refund';
+            }
+
+            // Ineligible Cancellation/Change
+            if (lowerComment.includes('cannot cancel') || lowerComment.includes('cannot change')) {
+                return 'Ineligible Cancellation/Change';
+            }
+
+            // Policy & Guidance Gap
+            if ((lowerComment.includes('out of stock') && lowerComment.includes('delay')) ||
+                (lowerComment.includes('wants to be actived') || lowerComment.includes('activate')) ||
+                (lowerComment.includes('inquired') || lowerComment.includes('requested assistance'))) {
+                return 'Policy & Guidance Gap';
+            }
+
+            return 'Unclassified';
+        }
+
+        async function classifyFile() {
+            if (!selectedFile) {
+                alert('Please select a file first');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('loadingSection').classList.remove('hidden');
+
+            try {
+                const text = await selectedFile.text();
+                const rows = parseCSV(text);
+                
+                if (rows.length === 0) {
+                    throw new Error('CSV file is empty');
+                }
+
+                // Classify each row
+                classifiedData = rows.map(row => {
+                    const comment = row['Any Other Comments'] || '';
+                    const classification = classifyCase(comment);
+                    return {
+                        ...row,
+                        'Escalation - Sub Reason (Specific Issue Type)': classification
+                    };
+                });
+
+                // Show results
+                setTimeout(() => {
+                    displayResults();
+                }, 500);
+
+            } catch (error) {
+                alert('Error processing file: ' + error.message);
+                reset();
+            }
+        }
+
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            if (lines.length === 0) return [];
+
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            const rows = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i]);
+                if (values.length === headers.length) {
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index];
+                    });
+                    rows.push(row);
+                }
+            }
+
+            return rows;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current.trim().replace(/^"|"$/g, ''));
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            result.push(current.trim().replace(/^"|"$/g, ''));
+            return result;
+        }
+
+        function displayResults() {
+            // Calculate statistics
+            const stats = {};
+            classifiedData.forEach(row => {
+                const classification = row['Escalation - Sub Reason (Specific Issue Type)'];
+                stats[classification] = (stats[classification] || 0) + 1;
+            });
+
+            // Display statistics
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = '';
+
+            // Total cases card
+            const totalCard = document.createElement('div');
+            totalCard.className = 'stat-card';
+            totalCard.innerHTML = `<h4>Total Cases</h4><div class="count">${classifiedData.length}</div>`;
+            statsGrid.appendChild(totalCard);
+
+            // Individual classification cards
+            Object.entries(stats).sort((a, b) => b[1] - a[1]).forEach(([type, count]) => {
+                const card = document.createElement('div');
+                card.className = 'stat-card';
+                card.innerHTML = `<h4>${type}</h4><div class="count">${count}</div>`;
+                statsGrid.appendChild(card);
+            });
+
+            // Display preview table
+            const previewBody = document.getElementById('previewBody');
+            previewBody.innerHTML = '';
+            
+            classifiedData.slice(0, 10).forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row['Ticket ID'] || 'N/A'}</td>
+                    <td style="max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                        title="${row['Any Other Comments'] || 'N/A'}">
+                        ${row['Any Other Comments'] || 'N/A'}
+                    </td>
+                    <td style="font-weight: 600; color: #667eea;">
+                        ${row['Escalation - Sub Reason (Specific Issue Type)']}
+                    </td>
+                `;
+                previewBody.appendChild(tr);
+            });
+
+            // Show results section
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('resultsSection').classList.remove('hidden');
+        }
+
+        function downloadResults() {
+            if (classifiedData.length === 0) {
+                alert('No data to download');
+                return;
+            }
+
+            // Convert to CSV
+            const headers = Object.keys(classifiedData[0]);
+            let csv = headers.map(h => `"${h}"`).join(',') + '\n';
+
+            classifiedData.forEach(row => {
+                const values = headers.map(header => {
+                    const value = row[header] || '';
+                    return `"${value.toString().replace(/"/g, '""')}"`;
+                });
+                csv += values.join(',') + '\n';
+            });
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            const timestamp = new Date().toISOString().split('T')[0];
+            link.setAttribute('href', url);
+            link.setAttribute('download', `classified-mos-cases-${timestamp}.csv`);
+            link.style.visibility = 'hidden';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function reset() {
+            selectedFile = null;
+            classifiedData = [];
+            
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileInfo').classList.add('hidden');
+            document.getElementById('uploadSection').classList.remove('hidden');
+            document.getElementById('loadingSection').classList.add('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
+
